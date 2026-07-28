@@ -1,23 +1,45 @@
+"""Adjustable saddle bridge: a section of a cylinder with a slot per string.
+
+Each saddle is located by a 5 x 5 mm intonation block dropped into its own
+radial slot, and moves fore and aft on an M3 screw to set intonation. That
+travel runs along the part's thickness, which is why BLANK_THICKNESS is 25 mm --
+it is the travel envelope, not stock to be carved away.
+
+The only number this takes from docs/JEN-VDG.pdf is STRING_PITCH. See
+profile_data.py and tools/extract_profile.py for where it came from.
+"""
+
 import math
 import os
 
 import cadquery as cq
 
-import profile_data
-
 OUTPUT_PATH = "out"
 
-BLANK_THICKNESS = 25.0      # oversize stock; the carving passes reduce this
+# --- geometry, mm and degrees -------------------------------------------
+ARC_CENTRE = (0.0, -37.5512)    # every radius below is measured from here
 
-# Telling the drawn straight edges from its curves. The plot tessellates curves
-# finely (segments under 1.05 mm) but draws the arch crown and the outer leg
-# edges coarsely, at ~3 mm a segment, so length alone is not enough. What does
-# separate them: a tessellated curve turns only 2-5 degrees between segments,
-# while a real straight edge meets its neighbours at a distinct corner.
-LINE_MIN_LENGTH = 1.5       # mm
-CORNER_ANGLE = 6.0          # degrees
+STRING_ARC_R = 72.0             # where the strings sit; mean of the drawing's
+                                # six radial notes (2.820-2.860" @ 59-125 deg)
+STRING_COUNT = 6
+STRING_PITCH = 13.21            # measured off the original, spread only 0.04 deg
 
-PREVIEW_OPTS = {            # the fast visual check
+SADDLE_HEIGHT = 5.0             # block bottom to string
+BODY_TOP_R = STRING_ARC_R - SADDLE_HEIGHT
+SLOT_DEPTH = 5.0                # the block sits fully home
+SLOT_FLOOR_R = BODY_TOP_R - SLOT_DEPTH
+SLOT_WIDTH = 5.0
+BODY_INNER_R = 53.9             # carried over from the original inner arc
+BODY_MARGIN = 16.0              # degrees of body beyond the outer strings
+
+BLANK_THICKNESS = 25.0          # intonation travel envelope
+END_WALL = 1.5                  # front and back, anchors the M3 screws
+M3_CLEARANCE = 3.2              # head bears on the wall, thread is in the block
+
+WEDGE_REACH = 500.0             # far enough that the wedge's chord clears the body
+SLOT_OVERCUT = 5.0              # push slots past BODY_TOP_R for a clean cut
+
+PREVIEW_OPTS = {                # the fast visual check
     "projectionDir": (1, -1, 0.8),
     "width": 800, "height": 800,
 }
@@ -33,78 +55,84 @@ def export_svg_preview(model, name):
     cq.exporters.export(model, svg_path, opt=PREVIEW_OPTS)
     print("Exported:", svg_path)
 
-def turn_angle(points, i):
-    """Degrees the polyline turns through at vertex `i`."""
-    n = len(points)
-    ax, ay = points[(i - 1) % n]
-    bx, by = points[i]
-    cx, cy = points[(i + 1) % n]
-    ux, uy = bx - ax, by - ay
-    vx, vy = cx - bx, cy - by
-    return abs(math.degrees(math.atan2(ux * vy - uy * vx, ux * vx + uy * vy)))
+def point_at(radius, angle):
+    """A point at `radius` and `angle` degrees about ARC_CENTRE."""
+    cx, cy = ARC_CENTRE
+    return (cx + radius * math.cos(math.radians(angle)),
+            cy + radius * math.sin(math.radians(angle)))
 
-def straight_segments(points):
-    """Flag each segment of the closed outline as a straight edge or not."""
-    n = len(points)
-    flags = []
-    for i in range(n):
-        length = math.dist(points[i], points[(i + 1) % n])
-        corners = turn_angle(points, i) >= CORNER_ANGLE and \
-                  turn_angle(points, (i + 1) % n) >= CORNER_ANGLE
-        flags.append(length >= LINE_MIN_LENGTH and corners)
-    return flags
+def string_angles():
+    """The six string positions, evenly pitched and centred on vertical.
 
-def outline_wire():
-    """The front-view silhouette as one closed wire on the XY plane.
-
-    Straight runs become lines and curved runs become splines through the
-    drawing's own points, so the wire follows the plot rather than smoothing
-    across its corners.
+    Uniform on purpose. The original's six gaps spread only 0.04 degrees, which
+    is 0.05 mm at the string arc -- inside anything that can be cut or heard.
     """
-    points = profile_data.OUTLINE
-    flags = straight_segments(points)
-    n = len(points)
+    middle = (STRING_COUNT - 1) / 2
+    return [90.0 + (i - middle) * STRING_PITCH for i in range(STRING_COUNT)]
 
-    # Start just after a straight segment, so the wire ends on one and `close`
-    # reproduces it exactly instead of guessing.
-    last = max(i for i, straight in enumerate(flags) if straight)
-    points = points[last + 1:] + points[:last + 1]
-    flags = flags[last + 1:] + flags[:last + 1]
+def body():
+    """The bar: an annular sector about ARC_CENTRE.
 
-    wire = cq.Workplane("XY").moveTo(*points[0])
-    i = 0
-    while i < n - 1:
-        if flags[i]:
-            wire = wire.lineTo(*points[i + 1])
-            i += 1
-        else:
-            run = i
-            while run < n - 1 and not flags[run]:
-                run += 1
-            wire = wire.spline(points[i + 1:run + 1], includeCurrent=True)
-            i = run
-    return wire.close()
-
-def blank(wire):
-    """Extrude the silhouette to a constant-thickness plank."""
-    return wire.extrude(BLANK_THICKNESS)
-
-def cut_string_holes(model):
-    """The 7 drilled through-holes.
-
-    The drawing shows these as closed circles, which reads as real holes for the
-    sympathetic strings. Drop this call if that turns out to be wrong.
+    Cut from a ring rather than drawn as a profile, so the two arcs are exact.
+    The wedge that trims it to the angular span can be a plain triangle -- with
+    its far vertices at WEDGE_REACH its chord passes hundreds of mm out, well
+    clear of anything the ring bounds.
     """
+    half_span = (STRING_COUNT - 1) * STRING_PITCH / 2 + BODY_MARGIN
+    ring = (cq.Workplane("XY")
+            .center(*ARC_CENTRE)
+            .circle(BODY_TOP_R)
+            .circle(BODY_INNER_R)
+            .extrude(BLANK_THICKNESS))
+    wedge = (cq.Workplane("XY")
+             .polyline([ARC_CENTRE,
+                        point_at(WEDGE_REACH, 90.0 - half_span),
+                        point_at(WEDGE_REACH, 90.0 + half_span)])
+             .close()
+             .extrude(BLANK_THICKNESS))
+    return ring.intersect(wedge)
+
+def cut_slots(model):
+    """One radial slot per string, for the saddle's intonation block.
+
+    Stops short of both faces by END_WALL so the M3 screws have something to
+    bear on, which leaves the block free to travel between them.
+    """
+    half_width = SLOT_WIDTH / 2
+    slots = cq.Workplane("XY", origin=(0, 0, END_WALL))
+    for angle in string_angles():
+        out = (math.cos(math.radians(angle)), math.sin(math.radians(angle)))
+        side = (-out[1], out[0])
+        cx, cy = ARC_CENTRE
+        slots = slots.polyline([
+            (cx + out[0] * radius + side[0] * offset,
+             cy + out[1] * radius + side[1] * offset)
+            for radius, offset in (
+                (SLOT_FLOOR_R, -half_width),
+                (BODY_TOP_R + SLOT_OVERCUT, -half_width),
+                (BODY_TOP_R + SLOT_OVERCUT, half_width),
+                (SLOT_FLOOR_R, half_width),
+            )
+        ]).close()
+    return model.cut(slots.extrude(BLANK_THICKNESS - 2 * END_WALL))
+
+def drill_screw_holes(model):
+    """M3 clearance through both end walls, on each slot's centreline.
+
+    Drilled the full thickness: everything between the walls is already slot,
+    so this only takes material out of the walls themselves.
+    """
+    axis_r = SLOT_FLOOR_R + SLOT_DEPTH / 2
     drills = cq.Workplane("XY")
-    for x, y, radius in profile_data.HOLES:
-        drills = drills.moveTo(x, y).circle(radius)
+    for angle in string_angles():
+        drills = drills.moveTo(*point_at(axis_r, angle)).circle(M3_CLEARANCE / 2)
     return model.cut(drills.extrude(BLANK_THICKNESS))
 
 os.makedirs(OUTPUT_PATH, exist_ok=True)
 
-profile = outline_wire()
-model = blank(profile)
-model = cut_string_holes(model)
+model = body()
+model = cut_slots(model)
+model = drill_screw_holes(model)
 
-export_step_file(model, "bridge_blank")
-export_svg_preview(model, "bridge_blank")
+export_step_file(model, "saddle_bridge")
+export_svg_preview(model, "saddle_bridge")
