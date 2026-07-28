@@ -23,6 +23,10 @@ STRING_ARC_R = 72.0             # where the strings sit; mean of the drawing's
                                 # six radial notes (2.820-2.860" @ 59-125 deg)
 STRING_COUNT = 6
 STRING_PITCH = 13.21            # measured off the original, spread only 0.04 deg
+STRING_CENTRE = 92.0            # the original's band sits 2 deg off vertical,
+                                # relative to the baseline its feet stood on.
+                                # Centring on 90 instead costs 1.0 mm of string
+                                # height; this is deliberately not BODY_CENTRE.
 
 SADDLE_HEIGHT = 5.0             # block bottom to string
 BODY_TOP_R = STRING_ARC_R - SADDLE_HEIGHT
@@ -30,6 +34,8 @@ SLOT_DEPTH = 5.0                # the block sits fully home
 SLOT_FLOOR_R = BODY_TOP_R - SLOT_DEPTH
 SLOT_WIDTH = 5.0
 BODY_INNER_R = 53.9             # carried over from the original inner arc
+BODY_CENTRE = 90.0              # the body sits square on its base even though
+                                # the strings do not; the original is the same
 BODY_MARGIN = 16.0              # degrees of body beyond the outer strings
 
 BLANK_THICKNESS = 25.0          # intonation travel envelope
@@ -62,13 +68,15 @@ def point_at(radius, angle):
             cy + radius * math.sin(math.radians(angle)))
 
 def string_angles():
-    """The six string positions, evenly pitched and centred on vertical.
+    """The six string positions, evenly pitched about STRING_CENTRE.
 
-    Uniform on purpose. The original's six gaps spread only 0.04 degrees, which
-    is 0.05 mm at the string arc -- inside anything that can be cut or heard.
+    Evenly pitched on purpose: the original's six gaps spread only 0.04 degrees,
+    which is 0.05 mm at the string arc. Its *radii* do vary, by 1.0 mm, and that
+    is not reproduced -- uniform saddles on a uniform arc leave the string
+    heights within 0.56 mm of the original, which the setup absorbs.
     """
     middle = (STRING_COUNT - 1) / 2
-    return [90.0 + (i - middle) * STRING_PITCH for i in range(STRING_COUNT)]
+    return [STRING_CENTRE + (i - middle) * STRING_PITCH for i in range(STRING_COUNT)]
 
 def body():
     """The bar: an annular sector about ARC_CENTRE.
@@ -86,8 +94,8 @@ def body():
             .extrude(BLANK_THICKNESS))
     wedge = (cq.Workplane("XY")
              .polyline([ARC_CENTRE,
-                        point_at(WEDGE_REACH, 90.0 - half_span),
-                        point_at(WEDGE_REACH, 90.0 + half_span)])
+                        point_at(WEDGE_REACH, BODY_CENTRE - half_span),
+                        point_at(WEDGE_REACH, BODY_CENTRE + half_span)])
              .close()
              .extrude(BLANK_THICKNESS))
     return ring.intersect(wedge)
