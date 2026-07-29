@@ -10,15 +10,13 @@ profile_data.py and tools/extract_profile.py for where it came from.
 """
 
 import math
-import os
 
 import cadquery as cq
 
-OUTPUT_PATH = "out"
+from common import (ARC_CENTRE, BLANK_THICKNESS, JOINT_HALF_ANGLE, JOINT_R,
+                    export_step_file, export_svg_preview, point_at)
 
 # --- geometry, mm and degrees -------------------------------------------
-ARC_CENTRE = (0.0, -37.5512)    # every radius below is measured from here
-
 STRING_ARC_R = 72.0             # where the strings sit; mean of the drawing's
                                 # six radial notes (2.820-2.860" @ 59-125 deg)
 STRING_COUNT = 6
@@ -33,39 +31,19 @@ BODY_TOP_R = STRING_ARC_R - SADDLE_HEIGHT
 SLOT_DEPTH = 5.0                # the block sits fully home
 SLOT_FLOOR_R = BODY_TOP_R - SLOT_DEPTH
 SLOT_WIDTH = 5.0
-BODY_INNER_R = 53.9             # carried over from the original inner arc
+BODY_INNER_R = JOINT_R          # the arc's underside; where the body docks on
 BODY_CENTRE = 90.0              # the body sits square on its base even though
                                 # the strings do not; the original is the same
-BODY_MARGIN = 16.0              # degrees of body beyond the outer strings
 
-BLANK_THICKNESS = 25.0          # intonation travel envelope
 END_WALL = 1.5                  # front and back, anchors the M3 screws
 M3_CLEARANCE = 3.2              # head bears on the wall, thread is in the block
 
+FIXING_CLEARANCE_D = 3.4        # M3 clearance for the screws into the body
+FIXING_COUNTERBORE_D = 6.0      # M3 cap head is 5.5; leaves 2.2 mm of lane
+FIXING_COUNTERBORE_DEPTH = 3.5  # head sits 0.5 mm below the seat
+
 WEDGE_REACH = 500.0             # far enough that the wedge's chord clears the body
 SLOT_OVERCUT = 5.0              # push slots past BODY_TOP_R for a clean cut
-
-PREVIEW_OPTS = {                # the fast visual check
-    "projectionDir": (1, -1, 0.8),
-    "width": 800, "height": 800,
-}
-
-def export_step_file(model, name):
-    step_path = f"{OUTPUT_PATH}/{name}.step"
-    cq.exporters.export(model, step_path)
-    print("Exported:", step_path)
-
-def export_svg_preview(model, name):
-    """Write the shaded-line preview render for `model`."""
-    svg_path = f"{OUTPUT_PATH}/{name}.svg"
-    cq.exporters.export(model, svg_path, opt=PREVIEW_OPTS)
-    print("Exported:", svg_path)
-
-def point_at(radius, angle):
-    """A point at `radius` and `angle` degrees about ARC_CENTRE."""
-    cx, cy = ARC_CENTRE
-    return (cx + radius * math.cos(math.radians(angle)),
-            cy + radius * math.sin(math.radians(angle)))
 
 def string_angles():
     """The six string positions, evenly pitched about STRING_CENTRE.
@@ -78,6 +56,16 @@ def string_angles():
     middle = (STRING_COUNT - 1) / 2
     return [STRING_CENTRE + (i - middle) * STRING_PITCH for i in range(STRING_COUNT)]
 
+def fixing_angles():
+    """Where the arc bolts down to the body: three lanes, no slot in the way.
+
+    Taken as the midpoints between string pairs 1-2, 3-4 and 5-6, so they track
+    `string_angles()` rather than being written down separately. The outer pairs
+    are used rather than the inner ones because they spread the fixings wider.
+    """
+    strings = string_angles()
+    return [(strings[i] + strings[i + 1]) / 2 for i in (0, 2, 4)]
+
 def body():
     """The bar: an annular sector about ARC_CENTRE.
 
@@ -86,7 +74,7 @@ def body():
     its far vertices at WEDGE_REACH its chord passes hundreds of mm out, well
     clear of anything the ring bounds.
     """
-    half_span = (STRING_COUNT - 1) * STRING_PITCH / 2 + BODY_MARGIN
+    half_span = JOINT_HALF_ANGLE
     ring = (cq.Workplane("XY")
             .center(*ARC_CENTRE)
             .circle(BODY_TOP_R)
@@ -136,11 +124,30 @@ def drill_screw_holes(model):
         drills = drills.moveTo(*point_at(axis_r, angle)).circle(M3_CLEARANCE / 2)
     return model.cut(drills.extrude(BLANK_THICKNESS))
 
-os.makedirs(OUTPUT_PATH, exist_ok=True)
+def cut_fixing_holes(model):
+    """Counterbored M3 clearance for the screws that pull the arc onto the body.
+
+    Cut radially inward from the seat, so the counterbore opens on the seat
+    surface and the clearance hole breaks out on the arc's underside. The heads
+    finish below the seat, and the saddles go in over them afterwards.
+    """
+    overcut = 1.0               # start outside the seat so the cut opens cleanly
+    tools = []
+    for angle in fixing_angles():
+        inward = cq.Vector(-math.cos(math.radians(angle)),
+                           -math.sin(math.radians(angle)), 0)
+        start = cq.Vector(*point_at(BODY_TOP_R + overcut, angle), BLANK_THICKNESS / 2)
+        tools.append(cq.Solid.makeCylinder(
+            FIXING_COUNTERBORE_D / 2, FIXING_COUNTERBORE_DEPTH + overcut, start, inward))
+        tools.append(cq.Solid.makeCylinder(
+            FIXING_CLEARANCE_D / 2,
+            BODY_TOP_R - BODY_INNER_R + 2 * overcut, start, inward))
+    return model.cut(cq.Workplane("XY").newObject(tools))
 
 model = body()
 model = cut_slots(model)
 model = drill_screw_holes(model)
+model = cut_fixing_holes(model)
 
 export_step_file(model, "saddle_bridge")
 export_svg_preview(model, "saddle_bridge")
