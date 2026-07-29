@@ -15,19 +15,13 @@ import cadquery as cq
 
 from common import (ARC_CENTRE, BLANK_THICKNESS, JOINT_HALF_ANGLE, JOINT_R,
                     SEAT_R, SLOT_DEPTH, SLOT_FLOOR_R, export_step_file,
-                    export_svg_preview, point_at)
+                    export_svg_preview, fixing_angles, point_at, string_angles)
 
 # --- geometry, mm and degrees -------------------------------------------
 # The radii -- SEAT_R, SLOT_FLOOR_R, JOINT_R and the SLOT_DEPTH between them --
 # come from common.py, because where the arc's underside lands is what the body
-# has to dock on to.
-STRING_COUNT = 6
-STRING_PITCH = 13.21            # measured off the original, spread only 0.04 deg
-STRING_CENTRE = 92.0            # the original's band sits 2 deg off vertical,
-                                # relative to the baseline its feet stood on.
-                                # Centring on 90 instead costs 1.0 mm of string
-                                # height; this is deliberately not BODY_CENTRE.
-
+# has to dock on to. The string band and the fixing lanes live there for the
+# same reason: the body is tapped on the lanes this part drills.
 SLOT_WIDTH = 5.0
 BODY_CENTRE = 90.0              # the body sits square on its base even though
                                 # the strings do not; the original is the same
@@ -41,27 +35,6 @@ FIXING_COUNTERBORE_DEPTH = 3.5  # head sits 0.5 mm below the seat
 
 WEDGE_REACH = 500.0             # far enough that the wedge's chord clears the body
 SLOT_OVERCUT = 5.0              # push slots past SEAT_R for a clean cut
-
-def string_angles():
-    """The six string positions, evenly pitched about STRING_CENTRE.
-
-    Evenly pitched on purpose: the original's six gaps spread only 0.04 degrees,
-    which is 0.05 mm at the string arc. Its *radii* do vary, by 1.0 mm, and that
-    is not reproduced -- uniform saddles on a uniform arc leave the string
-    heights within 0.56 mm of the original, which the setup absorbs.
-    """
-    middle = (STRING_COUNT - 1) / 2
-    return [STRING_CENTRE + (i - middle) * STRING_PITCH for i in range(STRING_COUNT)]
-
-def fixing_angles():
-    """Where the arc bolts down to the body: three lanes, no slot in the way.
-
-    Taken as the midpoints between string pairs 1-2, 3-4 and 5-6, so they track
-    `string_angles()` rather than being written down separately. The outer pairs
-    are used rather than the inner ones because they spread the fixings wider.
-    """
-    strings = string_angles()
-    return [(strings[i] + strings[i + 1]) / 2 for i in (0, 2, 4)]
 
 def body():
     """The bar: an annular sector about ARC_CENTRE.

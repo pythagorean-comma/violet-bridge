@@ -55,6 +55,16 @@ JOINT_HALF_ANGLE = 49.025   # how far the joint runs either side of vertical:
                             # stand 32.58 mm above the belly.
 BLANK_THICKNESS = 25.0      # both parts, front to back
 
+# The string band. Shared because the fixing lanes are derived from it: the arc
+# is drilled for them and the body is tapped for them, so both parts have to
+# agree on where they fall. The body must never write those angles down.
+STRING_COUNT = 6
+STRING_PITCH = 13.21        # measured off the original, spread only 0.04 deg
+STRING_CENTRE = 92.0        # the original's band sits 2 deg off vertical,
+                            # relative to the baseline its feet stood on.
+                            # Centring on 90 instead costs 1.0 mm of string
+                            # height; this is deliberately not BODY_CENTRE.
+
 PREVIEW_OPTS = {            # the fast visual check
     "projectionDir": (1, -1, 0.8),
     "width": 800, "height": 800,
@@ -65,6 +75,30 @@ def point_at(radius, angle):
     cx, cy = ARC_CENTRE
     return (cx + radius * math.cos(math.radians(angle)),
             cy + radius * math.sin(math.radians(angle)))
+
+def string_angles():
+    """The six string positions, evenly pitched about STRING_CENTRE.
+
+    Evenly pitched on purpose: the original's six gaps spread only 0.04 degrees,
+    which is 0.05 mm at the string arc. Its *radii* do vary, by 1.0 mm, and that
+    is not reproduced -- uniform saddles on a uniform arc leave the string
+    heights within 0.56 mm of the original, which the setup absorbs.
+    """
+    middle = (STRING_COUNT - 1) / 2
+    return [STRING_CENTRE + (i - middle) * STRING_PITCH for i in range(STRING_COUNT)]
+
+def fixing_angles():
+    """Where the arc bolts down to the body: three lanes, no slot in the way.
+
+    Taken as the midpoints between string pairs 1-2, 3-4 and 5-6, so they track
+    `string_angles()` rather than being written down separately. The outer pairs
+    are used rather than the inner ones because they spread the fixings wider.
+
+    Lives here rather than in either part because both need it: the arc drills
+    clearance on these lanes and the body is tapped on them.
+    """
+    strings = string_angles()
+    return [(strings[i] + strings[i + 1]) / 2 for i in (0, 2, 4)]
 
 def export_step_file(model, name):
     os.makedirs(OUTPUT_PATH, exist_ok=True)
