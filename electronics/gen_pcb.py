@@ -479,9 +479,7 @@ def route_right_column(board):
                      ("U9", 2), ("U9", 4), ("U9", 8), ("U9", 9),
                      ("U9", 10), ("U9", 11)):
         pad = board.pad(ref, pin)
-        centre = board.footprints[ref].GetPosition()
-        below = pad[1] > to_mm(centre.y)
-        offset = (-2.4, 0.0) if pad[0] < 70.0 else (0.0, 2.6 if below else -2.6)
+        offset = (2.2, 0.0) if pad[0] > 70.0 else (-2.2, 0.0)
         board.stub_via(ref, pin, offset)
     for ref, pin in (("U9", 6), ("U9", 12)):
         board.stub_via(ref, pin, (2.2, 0.0))
@@ -522,11 +520,13 @@ def report(board):
 
 def silkscreen(board, rectangle):
     left, top, right, bottom = rectangle
-    board.text("RMC pizz/arco  6ch  rev A", left + 3.0, top + 1.6, size=1.2)
-    board.text("12V DC FLOATING SUPPLY ONLY", left + 3.0, bottom - 1.6, size=1.0)
+    # PCB_TEXT is centred on its position, so titles sit at mid-span.
+    middle = (left + right) / 2
+    board.text("RMC pizz/arco  6 channel  rev A", middle, top + 1.8, size=1.4)
+    board.text("12 V DC FLOATING SUPPLY ONLY", middle, bottom - 1.8, size=1.2)
     for index in range(1, circuit.CHANNELS + 1):
         _, oy = tile_origin(index)
-        board.text(f"CH{index}  G/W/R", TILE_ORIGIN[0] - 0.5, oy + 0.2, size=0.9)
+        board.text(f"CH{index} G/W/R", TILE_ORIGIN[0] + 6.0, oy - 1.4, size=0.9)
 
 
 def main():
