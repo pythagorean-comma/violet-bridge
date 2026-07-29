@@ -14,11 +14,13 @@ import math
 import cadquery as cq
 
 from common import (ARC_CENTRE, BLANK_THICKNESS, JOINT_HALF_ANGLE, JOINT_R,
-                    export_step_file, export_svg_preview, point_at)
+                    SEAT_R, SLOT_DEPTH, SLOT_FLOOR_R, export_step_file,
+                    export_svg_preview, point_at)
 
 # --- geometry, mm and degrees -------------------------------------------
-STRING_ARC_R = 72.0             # where the strings sit; mean of the drawing's
-                                # six radial notes (2.820-2.860" @ 59-125 deg)
+# The radii -- SEAT_R, SLOT_FLOOR_R, JOINT_R and the SLOT_DEPTH between them --
+# come from common.py, because where the arc's underside lands is what the body
+# has to dock on to.
 STRING_COUNT = 6
 STRING_PITCH = 13.21            # measured off the original, spread only 0.04 deg
 STRING_CENTRE = 92.0            # the original's band sits 2 deg off vertical,
@@ -26,12 +28,7 @@ STRING_CENTRE = 92.0            # the original's band sits 2 deg off vertical,
                                 # Centring on 90 instead costs 1.0 mm of string
                                 # height; this is deliberately not BODY_CENTRE.
 
-SADDLE_HEIGHT = 5.0             # block bottom to string
-BODY_TOP_R = STRING_ARC_R - SADDLE_HEIGHT
-SLOT_DEPTH = 5.0                # the block sits fully home
-SLOT_FLOOR_R = BODY_TOP_R - SLOT_DEPTH
 SLOT_WIDTH = 5.0
-BODY_INNER_R = JOINT_R          # the arc's underside; where the body docks on
 BODY_CENTRE = 90.0              # the body sits square on its base even though
                                 # the strings do not; the original is the same
 
@@ -43,7 +40,7 @@ FIXING_COUNTERBORE_D = 6.0      # M3 cap head is 5.5; leaves 2.2 mm of lane
 FIXING_COUNTERBORE_DEPTH = 3.5  # head sits 0.5 mm below the seat
 
 WEDGE_REACH = 500.0             # far enough that the wedge's chord clears the body
-SLOT_OVERCUT = 5.0              # push slots past BODY_TOP_R for a clean cut
+SLOT_OVERCUT = 5.0              # push slots past SEAT_R for a clean cut
 
 def string_angles():
     """The six string positions, evenly pitched about STRING_CENTRE.
@@ -77,8 +74,8 @@ def body():
     half_span = JOINT_HALF_ANGLE
     ring = (cq.Workplane("XY")
             .center(*ARC_CENTRE)
-            .circle(BODY_TOP_R)
-            .circle(BODY_INNER_R)
+            .circle(SEAT_R)
+            .circle(JOINT_R)
             .extrude(BLANK_THICKNESS))
     wedge = (cq.Workplane("XY")
              .polyline([ARC_CENTRE,
@@ -105,8 +102,8 @@ def cut_slots(model):
              cy + out[1] * radius + side[1] * offset)
             for radius, offset in (
                 (SLOT_FLOOR_R, -half_width),
-                (BODY_TOP_R + SLOT_OVERCUT, -half_width),
-                (BODY_TOP_R + SLOT_OVERCUT, half_width),
+                (SEAT_R + SLOT_OVERCUT, -half_width),
+                (SEAT_R + SLOT_OVERCUT, half_width),
                 (SLOT_FLOOR_R, half_width),
             )
         ]).close()
@@ -136,12 +133,12 @@ def cut_fixing_holes(model):
     for angle in fixing_angles():
         inward = cq.Vector(-math.cos(math.radians(angle)),
                            -math.sin(math.radians(angle)), 0)
-        start = cq.Vector(*point_at(BODY_TOP_R + overcut, angle), BLANK_THICKNESS / 2)
+        start = cq.Vector(*point_at(SEAT_R + overcut, angle), BLANK_THICKNESS / 2)
         tools.append(cq.Solid.makeCylinder(
             FIXING_COUNTERBORE_D / 2, FIXING_COUNTERBORE_DEPTH + overcut, start, inward))
         tools.append(cq.Solid.makeCylinder(
             FIXING_CLEARANCE_D / 2,
-            BODY_TOP_R - BODY_INNER_R + 2 * overcut, start, inward))
+            SEAT_R - JOINT_R + 2 * overcut, start, inward))
     return model.cut(cq.Workplane("XY").newObject(tools))
 
 model = body()

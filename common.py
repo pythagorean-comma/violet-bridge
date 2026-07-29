@@ -3,7 +3,9 @@
 The bridge is built as two parts that dock together: `bridge.py` makes the
 saddle arc (the crown band) and `bridge_body.py` makes the decorated lower half.
 They have to agree on where the arc centre is and what radius they meet at, so
-those constants live here rather than being duplicated.
+those constants live here rather than being duplicated. The radius they meet at
+is set by the saddles: the joint sits SADDLE_WEB below the slot floors, which is
+as thin as the crown can be made and still hold a saddle.
 
 Both parts build and export at module level, so neither may import the other --
 hence this third module.
@@ -27,12 +29,30 @@ BRIDGE_HEIGHT = 65.0        # belly to the top of the highest saddle
 # 6.768 mm below the belly.
 ARC_CENTRE = (0.0, -6.768)
 
-JOINT_R = 53.9              # the two parts meet on this cylinder: it is the
-                            # arc's underside and the body's top edge
+# The radial stack, outside in. The strings sit on STRING_ARC_R; everything
+# below follows from what has to fit under them, and JOINT_R falls out at the
+# bottom rather than being a number in its own right.
+STRING_ARC_R = 72.0         # where the strings sit; mean of the drawing's six
+                            # radial notes (2.820-2.860" @ 59-125 deg)
+SADDLE_HEIGHT = 5.0         # block bottom to string
+SEAT_R = STRING_ARC_R - SADDLE_HEIGHT       # 67.0, the arc's outer face
+SLOT_DEPTH = 5.0            # the block sits fully home
+SLOT_FLOOR_R = SEAT_R - SLOT_DEPTH          # 62.0
+SADDLE_WEB = 2.0            # material left under the slot floors: all the crown
+                            # needs to carry the saddles, and the reason the
+                            # joint sits where it does
+
+JOINT_R = SLOT_FLOOR_R - SADDLE_WEB         # 60.0: the two parts meet on this
+                            # cylinder, which is the arc's underside and the
+                            # body's top edge. Derived, not chosen -- put the
+                            # joint anywhere lower and the crown is carrying
+                            # weight it has no use for.
 JOINT_HALF_ANGLE = 49.025   # how far the joint runs either side of vertical:
                             # the strings' own half-span of 33.025 deg plus
                             # 16 deg of margin. Sets the arc's angular extent
                             # and therefore how wide the body's top edge is.
+                            # At JOINT_R the joint is 90.6 mm wide and its ends
+                            # stand 32.58 mm above the belly.
 BLANK_THICKNESS = 25.0      # both parts, front to back
 
 PREVIEW_OPTS = {            # the fast visual check
