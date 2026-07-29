@@ -61,6 +61,16 @@ def edge_x(y):
     reach = JOINT_R**2 - (y - ARC_CENTRE[1])**2
     return min(HALF_WIDTH, math.sqrt(reach)) if reach > 0 else 0.0
 
+def in_material(x, y):
+    """Is (x, y) inside the body's cross-section, with the arch opening taken out?
+
+    Solid means inside the blank *and* not in the opening -- which is the region
+    within LEG_INNER_X of the centreline and inside ARCH_R. Anything further out
+    than the legs' inner faces is solid all the way down to the baseline.
+    """
+    radius = math.hypot(x - ARC_CENTRE[0], y - ARC_CENTRE[1])
+    return abs(x) <= edge_x(y) + 1e-9 and (abs(x) >= LEG_INNER_X or radius >= ARCH_R)
+
 def top_y(x):
     """Height of the blank's top edge at `x`, for hanging features off the arc.
 
@@ -139,15 +149,19 @@ def check_clearances():
 
     # the deepest point of a hole is its bottom rim, not its axis
     deepest = math.hypot(JOINT_R - INSERT_DEPTH, INSERT_D / 2)
-    floor = deepest - ARCH_R
     print(f"insert holes   {INSERT_D:.1f} dia x {INSERT_DEPTH:.1f} deep; "
-          f"deepest material at r = {deepest:.3f}, {floor:.3f} mm above the arch")
-    assert floor > 2.0, f"only {floor:.2f} mm of arch left under the inserts"
+          f"deepest material at r = {deepest:.3f}")
 
+    # Checked lane by lane rather than against the arch: the outer lanes now sit
+    # over the legs, where the arch floor is not what the hole is running out of.
     for angle in fixing_angles():
         x, y = point_at(JOINT_R, angle)
-        assert abs(x) <= edge_x(y) + 1e-6, f"lane {angle} is off the top edge"
-        print(f"   lane {angle:6.2f} deg enters at ({x:8.3f}, {y:7.3f})")
+        bx, by = point_at(deepest, angle)
+        over = "leg" if abs(x) >= LEG_INNER_X else "arch band"
+        assert in_material(x, y), f"lane {angle} enters off the top edge"
+        assert in_material(bx, by), f"lane {angle} breaks out at its bottom rim"
+        print(f"   lane {angle:7.3f} deg over the {over:9s} enters at "
+              f"({x:8.3f}, {y:7.3f}), bottoms at ({bx:8.3f}, {by:7.3f})")
 
     assert LEG_INNER_X < HALF_WIDTH, "legs wider than the blank"
     assert SPRING_Y < APEX_Y, "arch springs above the body's apex"

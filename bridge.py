@@ -13,18 +13,18 @@ import math
 
 import cadquery as cq
 
-from common import (ARC_CENTRE, BLANK_THICKNESS, JOINT_HALF_ANGLE, JOINT_R,
-                    SEAT_R, SLOT_DEPTH, SLOT_FLOOR_R, export_step_file,
+from common import (ARC_CENTRE, BLANK_THICKNESS, BODY_CENTRE,
+                    JOINT_HALF_ANGLE, JOINT_R, SEAT_R, SLOT_DEPTH,
+                    SLOT_FLOOR_R, SLOT_WIDTH, export_step_file,
                     export_svg_preview, fixing_angles, point_at, string_angles)
 
 # --- geometry, mm and degrees -------------------------------------------
 # The radii -- SEAT_R, SLOT_FLOOR_R, JOINT_R and the SLOT_DEPTH between them --
 # come from common.py, because where the arc's underside lands is what the body
 # has to dock on to. The string band and the fixing lanes live there for the
-# same reason: the body is tapped on the lanes this part drills.
-SLOT_WIDTH = 5.0
-BODY_CENTRE = 90.0              # the body sits square on its base even though
-                                # the strings do not; the original is the same
+# same reason: the body is tapped on the lanes this part drills. So do
+# SLOT_WIDTH and BODY_CENTRE, because the outer lanes are bisections of the gap
+# between the end slots' walls and the ends of the arc.
 
 END_WALL = 1.5                  # front and back, anchors the M3 screws
 M3_CLEARANCE = 3.2              # head bears on the wall, thread is in the block

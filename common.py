@@ -64,6 +64,11 @@ STRING_CENTRE = 92.0        # the original's band sits 2 deg off vertical,
                             # relative to the baseline its feet stood on.
                             # Centring on 90 instead costs 1.0 mm of string
                             # height; this is deliberately not BODY_CENTRE.
+SLOT_WIDTH = 5.0            # the saddle block's own width
+BODY_CENTRE = 90.0          # the body sits square on its base even though the
+                            # strings do not; the original is the same. With
+                            # JOINT_HALF_ANGLE this fixes where the arc ends,
+                            # which is one wall of the outer fixing lanes.
 
 PREVIEW_OPTS = {            # the fast visual check
     "projectionDir": (1, -1, 0.8),
@@ -87,18 +92,45 @@ def string_angles():
     middle = (STRING_COUNT - 1) / 2
     return [STRING_CENTRE + (i - middle) * STRING_PITCH for i in range(STRING_COUNT)]
 
+def slot_edge_angle(angle, radius, side):
+    """The angle at which a slot's wall crosses `radius`.
+
+    A slot is a parallel-sided radial cut, so its walls are not radial lines:
+    they close on the slot's own angle as the radius grows. `side` is -1 for the
+    wall clockwise of the slot and +1 for the other.
+    """
+    return angle + side * math.degrees(math.asin((SLOT_WIDTH / 2) / radius))
+
 def fixing_angles():
     """Where the arc bolts down to the body: three lanes, no slot in the way.
 
-    Taken as the midpoints between string pairs 1-2, 3-4 and 5-6, so they track
-    `string_angles()` rather than being written down separately. The outer pairs
-    are used rather than the inner ones because they spread the fixings wider.
+    The outer two sit *outboard* of the end slots, in the plain band between the
+    last slot wall and the end of the arc, each centred in that band. It is much
+    wider than the ribs between slots -- 18.6 and 13.9 mm at the seat -- and it
+    puts the clamping load over the body's legs rather than over its arch. The
+    middle lane is the midpoint of strings 3-4, the one gap wide enough to be
+    worth using.
+
+    Centred at SEAT_R, where the counterbore -- the largest tool on the lane --
+    opens. Bisecting at JOINT_R instead moves the lanes 0.13 deg, so the radius
+    barely matters; it only has to be chosen once.
+
+    The two outer lanes are not mirror images. The string band is centred on
+    STRING_CENTRE and the arc on BODY_CENTRE, 2 deg apart, so the band outboard
+    of the first slot is wider than the one outboard of the last, and centring
+    in each puts the lanes 2 deg apart in their offsets from the arc's centre.
 
     Lives here rather than in either part because both need it: the arc drills
     clearance on these lanes and the body is tapped on them.
     """
     strings = string_angles()
-    return [(strings[i] + strings[i + 1]) / 2 for i in (0, 2, 4)]
+    return [
+        (BODY_CENTRE - JOINT_HALF_ANGLE
+         + slot_edge_angle(strings[0], SEAT_R, -1)) / 2,
+        (strings[2] + strings[3]) / 2,
+        (slot_edge_angle(strings[-1], SEAT_R, +1)
+         + BODY_CENTRE + JOINT_HALF_ANGLE) / 2,
+    ]
 
 def export_step_file(model, name):
     os.makedirs(OUTPUT_PATH, exist_ok=True)
