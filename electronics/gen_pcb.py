@@ -35,78 +35,140 @@ VIA_DIAMETER = 0.6
 VIA_DRILL = 0.3
 CLEARANCE = 0.2
 
-TILE_PITCH = 14.0
-TILE_ORIGIN = (4.0, 4.0)     # top-left of channel 1's tile, in board coords
-CORRIDOR_X = 48.0            # OUT and SWN run up this lane to the right column
-RIGHT_X = 62.0               # switch ICs, DIN header and power live here
+# The board is machine-assembled now, so the layout is spaced for a placement
+# head rather than a soldering iron. That alone is most of the size change:
+# the old board carried the same circuit at 17% land utilisation.
+#
+# The op-amp is still SOIC-8, so the tile's *vertical* structure is unchanged
+# -- every lane in a channel is derived from a SOIC pin, and those have not
+# moved. What shrinks is the horizontal spacing between passives, and how
+# close the top and bottom rows can sit to the package now they are 0402.
+#
+# 12 mm pitch is what the tile actually needs, and it is set by routing rather
+# than by parts. A channel has to carry five lanes past its op-amp -- OUT
+# above, BUFOUT and the APN jumper over the package, APOUT below them, and SWN
+# underneath -- and each wants 0.65 mm of width and clearance. Squeezing the
+# rows closer than this leaves the lanes nowhere to go, which is the thing
+# that actually limits the tile, not the size of an 0402.
+TILE_PITCH = 12.0
+TILE_ORIGIN = (2.0, 3.0)     # top-left of channel 1's tile, in board coords
 BOARD_MARGIN = 3.0
+
+BOARD_W = 56.0
+BOARD_H = 94.0
 
 # Tile-local placement: ref suffix -> (x, y, rotation).
 # Rotation 90 stands a two-pad part on end with pad 1 lowermost; 270 puts
 # pad 1 uppermost. Positions are chosen so the op-amp's own pin order does
 # the routing work: the buffer lives on its left, the all-pass on its right.
 TILE_PLACEMENT = {
-    "J":   (2.5, 2.0, 0),        # 1=shield (top), 2=white, 3=red (bottom)
-    "R02": (6.5, 8.547, 270),    # 3M3 bias, pin 1 sits on the white lane
-    "R01": (11.0, 7.635, 0),     # 1k stopper, in line with the white lane
-    "C01": (14.0, 8.585, 270),   # 100p RF filter, pin 1 on the buffer input
-    "R03": (18.3, 5.73, 90),     # 1k buffer feedback, beside pins 1 and 2
-    "U":   (23.0, 7.0, 0),       # OPA2191
-    "C06": (26.5, 3.2, 0),       # V+ decoupling, level with pin 8
-    "C07": (17.5, 10.3, 180),    # V- decoupling, level with pin 4
-    "R06": (32.0, 3.2, 0),       # all-pass feedback pair, top row
-    "C02": (37.0, 3.2, 0),
-    "C04": (42.0, 3.2, 0),       # summing capacitors into the red element
-    "C05": (42.0, 6.0, 0),
-    "R04": (32.0, 12.5, 0),      # the two 47k from the buffer, bottom row
-    "R05": (37.0, 12.5, 0),
-    "C03": (42.0, 12.5, 0),      # all-pass lag capacitor
+    "J":   (3.2, 5.5, 90),       # 3=red (top), 2=white, 1=shield (bottom)
+    "R02": (7.6, 7.047, 270),    # 3M3 bias, pin 1 sits on the white lane
+    "R01": (10.8, 6.135, 0),     # 1k stopper, in line with the white lane
+    "C01": (14.0, 7.085, 270),   # 100p RF filter, pin 1 on the buffer input
+    "R03": (16.3, 4.23, 90),     # 1k buffer feedback, beside pins 1 and 2
+    "U":   (21.0, 5.5, 0),       # OPA2191
+    # Top row. R04 sits here rather than below the package: it is the one 47k
+    # that lands on APN, and keeping every APN pad in a single row confines
+    # the interleave with APOUT to one place where the B.Cu jumper can deal
+    # with it. Below the package it collided with both the SWN lane and the
+    # BUFOUT jumper, which have nowhere else to run.
+    "C06": (21.0, 1.2, 0),       # V+ decoupling, clear of R04's pad
+    "R04": (24.6, 1.2, 0),       # 47k, buffer out to the all-pass input
+    "R06": (26.8, 1.2, 0),       # all-pass feedback pair
+    "C02": (29.0, 1.2, 0),
+    "C04": (31.2, 1.2, 0),       # summing capacitors into the red element
+    "C05": (33.4, 1.2, 0),
+    # Bottom row, deliberately sparse -- the SWN lane and the BUFOUT jumper
+    # both have to get past it.
+    "C07": (17.0, 10.0, 180),    # V- decoupling, clear of the BUFOUT drop
+    "R05": (28.8, 10.0, 0),      # 47k, all-pass lag
+    "C03": (31.2, 10.0, 0),      # all-pass lag capacitor
 }
 
 # Tile-local lanes used by the routing below.
-Y_OUT_LANE = 0.7
-Y_BUFOUT_LANE = 1.9
-Y_APN_JUMPER = 2.4       # on B.Cu, under the top row
-Y_APOUT_LANE = 4.3
-Y_SWN_LANE = 9.8
-Y_BUFOUT_JUMPER = 14.0   # on B.Cu, below the bottom row
-X_BUFOUT_DROP = 24.0     # B.Cu drop from the top lane, under the package
-TILE_EXIT_X = 50.0
+#
+# The op-amp is unchanged, so these still derive from its pins: with U at
+# y = 5.5, pin 1 sits at 3.595, pins 2/7 at 4.865, pins 3/6 at 6.135 and
+# pins 4/5 at 7.405.
+Y_OUT_LANE = -0.1        # in the clear band between this tile and the one above
+Y_BUFOUT_LANE = 2.2      # F.Cu, over the package to R04 in the top row
+Y_APN_JUMPER = 2.2       # B.Cu, under the top row; clear of the lane above it
+Y_APOUT_LANE = 3.2       # F.Cu, below the APN jumper
+Y_SWN_LANE = 8.9         # between the package and the bottom row
+Y_BUFOUT_JUMPER = 11.0   # B.Cu, below the bottom row
+X_APOUT_CLIMB = 25.5     # the column APOUT uses to leave pin 7
+X_BUFOUT_DROP = 19.6     # B.Cu drop under the package to the bottom row
+TILE_EXIT_X = 36.0
+
+# The corridor between the tiles and the switch column. Twelve lanes, a TSSOP
+# and two landing columns have to share 17.7 mm, which is what sets the 0.6 mm
+# lane pitch -- tight, but every pair still clears by 0.4 mm or better.
+# OUT carries no vias in the corridor, so its lanes can sit at 0.5 mm. The
+# switched-node lanes each end in a via, and a 0.6 mm via beside a neighbouring
+# track needs 0.625 mm of pitch, so those get 0.65.
+LANE_PITCH = 0.5
+SWN_PITCH = 0.65
+OUT_LANE_X = 38.8        # six OUT lanes, one per channel
+SWN_LANE_X = 42.0        # six switched-node lanes
+CTL_LEFT_X = 46.2        # where the control line lands for the left-hand cells
+SPINE_X = 54.6           # the control spine, outboard of the switch packages
+DIN_APPROACH_Y = 75.0    # OUT fans in below channel 6's BUFOUT jumper
+DIN_APPROACH_PITCH = 0.5
 
 # Board-level placement: ref -> (x, y, rotation).
+#
+# Two zones. A switch column down the right, each package beside the pair of
+# channels it serves so the switched-node runs stay short; and a supply strip
+# across the bottom in three rows -- connectors, then the power semiconductors,
+# then the small stuff. The connectors that leave the instrument (J7 to the
+# DIN, J9 to the pack) are both on the bottom edge, which is the end the
+# enclosure mounts at.
+SWITCH_X = 50.0
+ROW_CONN = 80.0          # bottom strip: connectors
+ROW_POWER = 86.5         # bottom strip: diodes, fuse, bulk, the inverter
+ROW_SMALL = 91.5         # bottom strip: 0402 furniture
+
 BOARD_PLACEMENT = {
-    "J7":  (RIGHT_X + 2.0, 2.0, 0),        # DIN-8 out, pins 1..8 downwards
-    # One switch package per pair of channels, sat beside the pair it serves,
-    # so each switched-node run stays short.
-    "U8":  (70.0, 26.0, 0),
-    "U9":  (70.0, 52.0, 0),
-    "U10": (70.0, 84.0, 0),
-    "C801": (82.0, 22.0, 0),
-    "C802": (82.0, 30.0, 0),
-    "C803": (82.0, 48.0, 0),
-    "C804": (82.0, 56.0, 0),
-    "C805": (82.0, 80.0, 0),
-    "C806": (82.0, 88.0, 0),
-    "J8":  (80.0, 64.0, 0),                # pizz/arco toggle
-    "R701": (74.0, 68.0, 0),
-    "C703": (74.0, 72.0, 0),
-    "J9":  (4.0, 100.5, 0),                 # supply in, bottom left
-    "F701": (10.0, 100.5, 0),
-    "D701": (16.0, 100.5, 180),             # pin 1 (cathode) faces the rail
-    "D702": (22.0, 100.5, 0),
-    "C701": (31.0, 100.5, 0),               # bulk electrolytic
-    "C702": (38.0, 100.5, 0),
-    "C704": (42.5, 100.5, 0),
-    "R702": (47.0, 97.0, 0),               # mid-rail divider
-    "R703": (47.0, 103.0, 180),             # pin 1 faces the reference node
-    "C705": (52.0, 105.0, 0),
-    "U7":  (58.0, 100.5, 0),                # mid-rail buffer
-    "R704": (52.0, 98.595, 180),           # isolation, pin 1 toward U7 pin 1
-    "C706": (66.0, 98.0, 0),               # rail bypass: every pad is a via
-    "C707": (66.0, 103.0, 0),
-    "C708": (72.0, 98.0, 0),
-    "C709": (72.0, 103.0, 0),
-    "JP1": (69.0, 19.78, 0),               # beside DIN pin 8
+    # One switch package per pair of channels. Their decoupling sits above and
+    # below each package rather than beside it -- there is no width left to
+    # the right of a TSSOP on a 56 mm board.
+    "U8":  (SWITCH_X, 14.75, 0),
+    "U9":  (SWITCH_X, 33.75, 0),
+    "U10": (SWITCH_X, 52.75, 0),
+    "C801": (SWITCH_X, 10.75, 0),
+    "C802": (SWITCH_X, 18.75, 0),
+    "C803": (SWITCH_X, 29.75, 0),
+    "C804": (SWITCH_X, 37.75, 0),
+    "C805": (SWITCH_X, 48.75, 0),
+    "C806": (SWITCH_X, 56.75, 0),
+
+    "J9":  (3.5, ROW_CONN, 0),             # pack in
+    "J7":  (18.0, ROW_CONN, 180),          # DIN-8 out; pin 1 rightmost so
+                                       # the fan-in never crosses
+                                       # itself -- see route_outputs
+    "JP1": (8.5, ROW_CONN, 180),           # beside DIN pin 8, turned so
+                                       # its ground pad faces away
+                                       # from the incoming track
+    "J8":  (50.0, ROW_CONN, 0),            # pizz/arco toggle, by the switches
+
+    "F701": (4.0, ROW_POWER, 0),
+    "D701": (10.0, ROW_POWER, 180),        # pin 1 (cathode) faces the rail
+    "D702": (18.0, ROW_POWER, 0),          # V+ clamp
+    "D703": (27.0, ROW_POWER, 0),          # V- clamp
+    "C701": (34.0, ROW_POWER, 0),          # input bulk
+    "U7":  (43.0, ROW_POWER, 0),           # the inverter
+    "C705": (38.0, ROW_POWER + 0.635, 270),  # flying capacitor, on the
+                                       # pump's CAP+/CAP- side
+
+    "C704": (6.0, ROW_SMALL, 0),           # V+ bypass, by the input chain
+    # The inverter's output furniture stays beside the inverter.
+    "C706": (40.0, ROW_SMALL, 0),          # reservoir
+    "R702": (44.0, ROW_SMALL, 0),          # ripple filter
+    "C707": (26.0, ROW_SMALL, 0),
+    "C708": (31.0, ROW_SMALL, 0),
+    "R701": (48.0, ROW_SMALL, 0),          # control pull-down, by the toggle
+    "C703": (52.0, ROW_SMALL, 0),
 }
 
 
@@ -206,7 +268,7 @@ class Board:
         item.SetNet(self.net(net))
         self.board.Add(item)
 
-    def stub_via(self, ref, number, offset):
+    def stub_via(self, ref, number, offset, width=None):
         """Short track from a pad to a via beside it -- how AGND, V+ and V-
         pads reach their planes.
 
@@ -217,8 +279,8 @@ class Board:
         net = circuit.DESIGN.pin_owner()[(ref, str(number))]
         pad = self.pad(ref, number)
         target = (round(pad[0] + offset[0], 4), round(pad[1] + offset[1], 4))
-        self.track(net, [pad, target], width=POWER_TRACK if net in
-                   ("V+", "V-", "AGND") else TRACK)
+        self.track(net, [pad, target], width=width or (
+            POWER_TRACK if net in ("V+", "V-", "AGND") else TRACK))
         self.via(net, *target)
         return target
 
@@ -285,11 +347,12 @@ def place_rest(board):
 def route_channel(board, index):
     """Route one tile.
 
-    Almost everything lives on F.Cu. Three links have to cross the fan-out
-    from the op-amp's right-hand pins, so they hop to B.Cu and back: the
-    buffer output on its way down to the bottom row, and the inverting-input
-    net on its way up to the feedback pair. AGND, V+ and V- never travel --
-    they drop straight onto their planes through a via beside the pad.
+    Almost everything lives on F.Cu. Two links have to cross the fan-out from
+    the op-amp's right-hand pins, so they hop to B.Cu and back: the buffer
+    output on its way down to R05 in the bottom row, and the inverting-input
+    net where it has to get past APOUT's pads in the top row. AGND, V+ and V-
+    never travel -- they drop straight onto their planes through a via beside
+    the pad.
     """
     ox, oy = tile_origin(index)
     n = index
@@ -303,233 +366,249 @@ def route_channel(board, index):
     def ground(suffix, number, offset):
         board.stub_via(tile_ref(suffix, n), number, offset)
 
+    def lane_of(p, y):
+        """The point directly above or below pad `p` on tile-local lane `y`."""
+        return (p[0], at(0, y)[1])
+
     # -- the red element straight through to the output -------------------
-    board.track(f"OUT{n}", [pad("J", 3), at(1.0, 7.08), at(1.0, Y_OUT_LANE),
+    # Out sideways from the connector first: pins 1 and 2 sit directly below
+    # pin 3 in the same column, so climbing from the pad would short them.
+    board.track(f"OUT{n}", [pad("J", 3), at(4.525, Y_OUT_LANE),
                             at(TILE_EXIT_X, Y_OUT_LANE)])
-    board.track(f"OUT{n}", [at(42.95, Y_OUT_LANE), pad("C04", 2), pad("C05", 2)])
+    # The two summing capacitors reach the same lane from below, each on its
+    # own stub. Nothing crosses, because the lane is above the whole row.
+    for suffix in ("C04", "C05"):
+        board.track(f"OUT{n}", [pad(suffix, 2), lane_of(pad(suffix, 2), Y_OUT_LANE)])
 
     # -- white element input network --------------------------------------
-    board.track(f"IN_W{n}", [pad("J", 2), at(4.2, 4.54), at(4.2, 7.635),
+    board.track(f"IN_W{n}", [pad("J", 2), at(6.0, 5.5), at(6.0, 6.135),
                              pad("R02", 1), pad("R01", 1)])
     board.track(f"BUFIN{n}", [pad("R01", 2), pad("C01", 1), pad("U", 3)])
 
     # -- buffer ------------------------------------------------------------
-    board.track(f"BUFFB{n}", [pad("U", 2), at(19.3, 6.365), at(19.3, 6.642),
-                              pad("R03", 1)])
-    board.track(f"BUFOUT{n}", [pad("U", 1), at(19.0, 5.095), at(19.0, 4.818),
-                               pad("R03", 2)])
-    # Up and over the package, then down the back side to the bottom row.
-    board.track(f"BUFOUT{n}", [pad("U", 1), at(20.525, Y_BUFOUT_LANE),
-                               at(X_BUFOUT_DROP, Y_BUFOUT_LANE)])
-    board.via(f"BUFOUT{n}", *at(X_BUFOUT_DROP, Y_BUFOUT_LANE))
+    board.track(f"BUFFB{n}", [pad("U", 2), at(16.3, 4.865), pad("R03", 1)])
+    board.track(f"BUFOUT{n}", [pad("U", 1), at(16.3, 3.595), pad("R03", 2)])
+    # Up over the package on F.Cu to R04, which is why R04 is in the top row.
+    board.track(f"BUFOUT{n}", [pad("U", 1), at(18.525, Y_BUFOUT_LANE),
+                               lane_of(pad("R04", 1), Y_BUFOUT_LANE),
+                               pad("R04", 1)])
+    # R05 is in the bottom row, so that leg drops under the package on B.Cu.
+    drop = at(X_BUFOUT_DROP, Y_BUFOUT_LANE)
+    board.via(f"BUFOUT{n}", *drop)
     board.track(f"BUFOUT{n}",
-                [at(X_BUFOUT_DROP, Y_BUFOUT_LANE), at(X_BUFOUT_DROP, Y_BUFOUT_JUMPER),
-                 (pad("R04", 1)[0], at(0, Y_BUFOUT_JUMPER)[1]),
-                 (pad("R05", 1)[0], at(0, Y_BUFOUT_JUMPER)[1])],
+                [drop, at(X_BUFOUT_DROP, Y_BUFOUT_JUMPER),
+                 lane_of(pad("R05", 1), Y_BUFOUT_JUMPER)],
                 layer=pcbnew.B_Cu)
-    for suffix in ("R04", "R05"):
-        x = pad(suffix, 1)[0]
-        board.via(f"BUFOUT{n}", x, at(0, Y_BUFOUT_JUMPER)[1])
-        board.track(f"BUFOUT{n}", [(x, at(0, Y_BUFOUT_JUMPER)[1]), pad(suffix, 1)])
+    landing = lane_of(pad("R05", 1), Y_BUFOUT_JUMPER)
+    board.via(f"BUFOUT{n}", *landing)
+    board.track(f"BUFOUT{n}", [landing, pad("R05", 1)])
 
-    # -- all-pass: inverting input up to the feedback pair, on B.Cu --------
-    board.track(f"APN{n}", [pad("U", 6), at(27.0, 7.635)])
-    board.via(f"APN{n}", *at(27.0, 7.635))
+    # -- all-pass inverting input, on B.Cu under the top row ---------------
+    # R04, R06 and C02 all put an APN pad in the top row, interleaved with the
+    # APOUT pads of the same parts. One net has to go underneath; APN is the
+    # one, because APOUT has further to travel afterwards.
+    entry = at(24.9, 6.135)
+    board.track(f"APN{n}", [pad("U", 6), entry])
+    board.via(f"APN{n}", *entry)
+    apn_pads = [pad("R04", 2), pad("R06", 1), pad("C02", 1)]
     board.track(f"APN{n}",
-                [at(27.0, 7.635), at(27.0, Y_APN_JUMPER),
-                 (pad("R06", 1)[0], at(0, Y_APN_JUMPER)[1]),
-                 (pad("C02", 1)[0], at(0, Y_APN_JUMPER)[1])],
+                [entry, at(24.9, Y_APN_JUMPER)] +
+                [lane_of(p, Y_APN_JUMPER) for p in apn_pads],
                 layer=pcbnew.B_Cu)
-    for suffix in ("R06", "C02"):
-        x = pad(suffix, 1)[0]
-        board.via(f"APN{n}", x, at(0, Y_APN_JUMPER)[1])
-        board.track(f"APN{n}", [(x, at(0, Y_APN_JUMPER)[1]), pad(suffix, 1)])
-    # R04's far end joins the same B.Cu run from below.
-    drop = (pad("R04", 2)[0], at(0, 10.8)[1])
-    board.track(f"APN{n}", [pad("R04", 2), drop])
-    board.via(f"APN{n}", *drop)
-    board.track(f"APN{n}", [drop, (drop[0], at(0, Y_APN_JUMPER)[1])], layer=pcbnew.B_Cu)
+    for p in apn_pads:
+        board.via(f"APN{n}", *lane_of(p, Y_APN_JUMPER))
+        board.track(f"APN{n}", [lane_of(p, Y_APN_JUMPER), p])
 
-    # -- all-pass output: one clear lane along the top row -----------------
-    board.track(f"APOUT{n}", [pad("U", 7), at(27.2, 6.365), at(27.2, Y_APOUT_LANE),
-                              (pad("R06", 2)[0], at(0, Y_APOUT_LANE)[1])])
-    board.track(f"APOUT{n}", [(pad("R06", 2)[0], at(0, Y_APOUT_LANE)[1]), pad("R06", 2)])
-    for suffix in ("C02", "C04"):
-        x = pad(suffix, 2 if suffix == "C02" else 1)[0]
-        board.track(f"APOUT{n}", [(pad("R06", 2)[0], at(0, Y_APOUT_LANE)[1]),
-                                  (x, at(0, Y_APOUT_LANE)[1])])
-        board.track(f"APOUT{n}", [(x, at(0, Y_APOUT_LANE)[1]),
-                                  pad(suffix, 2 if suffix == "C02" else 1)])
-    board.track(f"APOUT{n}", [(pad("C04", 1)[0], at(0, Y_APOUT_LANE)[1]), pad("C05", 1)])
+    # -- all-pass output: its own F.Cu lane below the jumper ---------------
+    apout_pads = [pad("R06", 2), pad("C02", 2), pad("C04", 1), pad("C05", 1)]
+    board.track(f"APOUT{n}", [pad("U", 7), at(X_APOUT_CLIMB, 4.865),
+                              at(X_APOUT_CLIMB, Y_APOUT_LANE)] +
+                             [lane_of(p, Y_APOUT_LANE) for p in apout_pads])
+    for p in apout_pads:
+        board.track(f"APOUT{n}", [lane_of(p, Y_APOUT_LANE), p])
 
     # -- switched node, out to the switch bank -----------------------------
-    board.track(f"SWN{n}", [pad("U", 5), at(27.8, 8.905), at(27.8, Y_SWN_LANE),
+    board.track(f"SWN{n}", [pad("U", 5), at(X_APOUT_CLIMB, 7.405),
+                            at(X_APOUT_CLIMB, Y_SWN_LANE),
                             at(TILE_EXIT_X, Y_SWN_LANE)])
-    for suffix in ("R05", "C03"):
-        x = pad(suffix, 2 if suffix == "R05" else 1)[0]
-        board.track(f"SWN{n}", [(x, at(0, Y_SWN_LANE)[1]),
-                                pad(suffix, 2 if suffix == "R05" else 1)])
+    for suffix, number in (("R05", 2), ("C03", 1)):
+        board.track(f"SWN{n}", [lane_of(pad(suffix, number), Y_SWN_LANE),
+                                pad(suffix, number)])
 
     # -- supplies and ground ----------------------------------------------
-    board.track("V+", [pad("U", 8), at(25.475, 3.2), pad("C06", 1)], width=POWER_TRACK)
-    board.via("V+", *at(25.0, 3.2))
-    board.track("V-", [pad("U", 4), at(20.525, 10.3), pad("C07", 1)], width=POWER_TRACK)
-    board.via("V-", *at(20.0, 10.3))
+    # Both rails and ground reach their plane through a via beside the pad;
+    # nothing is bussed. The op-amp's own V+ via sits clear of the APOUT climb.
+    board.track("V-", [pad("U", 4), at(18.525, 8.6)], width=POWER_TRACK)
+    board.via("V-", *at(18.525, 8.6))
+    board.track("V+", [pad("U", 8), at(22.2, 3.595)], width=POWER_TRACK)
+    board.via("V+", *at(22.2, 3.595))
 
-    for suffix, number, offset in (("J", 1, (2.2, 0.0)),
-                                   ("R02", 2, (0.0, 1.2)),
-                                   ("C01", 2, (0.0, 1.2)),
-                                   ("C06", 2, (1.3, 0.0)),
-                                   ("C07", 2, (-1.3, 0.0)),
-                                   ("C03", 2, (1.3, 0.0))):
+    for suffix, number, offset in (("J", 1, (1.6, 1.0)),
+                                   ("R02", 2, (0.0, 1.3)),
+                                   ("C01", 2, (0.0, 1.3)),
+                                   ("C06", 1, (-1.2, 0.0)),
+                                   ("C06", 2, (1.2, 0.0)),
+                                   ("C07", 1, (1.2, 0.0)),
+                                   ("C07", 2, (-1.2, 0.0)),
+                                   ("C03", 2, (1.2, 0.0))):
         ground(suffix, number, offset)
 
 
 def route_outputs(board):
-    """Six OUT nets up the corridor to the DIN header.
+    """Six OUT nets down the corridor to the DIN header.
 
-    Each gets its own vertical lane, ordered so that a lane's horizontal
-    runs always fall clear of the lanes belonging to lower-numbered
-    channels -- which is why none of the six cross.
+    Entirely on F.Cu, and entirely without vias. B.Cu in this corridor belongs
+    to the switched-node horizontals, which cross every lane on their way out
+    of the tiles, so putting OUT down there would short the two.
+
+    Nothing crosses, and the ordering is what does it. The header is below the
+    tiles, so the lanes run downwards -- which means channel 1, whose tile is
+    furthest from the header, needs the *outermost* lane and the *lowest*
+    approach row, not the innermost and highest. Reverse both, and put J7's
+    pin 1 at the right-hand end, and every crossing disappears: a channel's
+    exit only ever passes lanes that have not started yet, and its approach
+    row only ever passes drops that have already finished.
     """
+    last = circuit.CHANNELS - 1
     for index in range(1, circuit.CHANNELS + 1):
         _, oy = tile_origin(index)
-        lane = 54.4 + (index - 1) * 0.8
+        lane = round(OUT_LANE_X + (last - index + 1) * LANE_PITCH, 4)
+        approach = round(DIN_APPROACH_Y + (last - index + 1) * DIN_APPROACH_PITCH, 4)
         exit_y = round(oy + Y_OUT_LANE, 4)
         target = board.pad("J7", index)
         board.track(f"OUT{index}",
                     [(TILE_ORIGIN[0] + TILE_EXIT_X, exit_y), (lane, exit_y),
-                     (lane, target[1])])
-        # The last hop crosses the switched-node lanes, so it goes underneath.
-        # J7 is through-hole, so the back layer reaches its pad directly.
-        board.via(f"OUT{index}", lane, target[1])
-        board.track(f"OUT{index}", [(lane, target[1]), target], layer=pcbnew.B_Cu)
+                     (lane, approach), (target[0], approach), target])
 
 
 def route_switched_nodes(board):
     """Six SWN nets from the tiles to the analog switches.
 
-    Two of the eight switch cells on a 4066 sit entirely on the far side of
-    the package, so those two hop to B.Cu and cross underneath it.
+    Cells A and B of each package take their signal on the left-hand side, so
+    every switched node arrives from the corridor without crossing the control
+    line, which comes down the right.
     """
     targets = {1: ("U8", 1), 2: ("U8", 3), 3: ("U9", 1),
                4: ("U9", 3), 5: ("U10", 1), 6: ("U10", 3)}
     for index in range(1, circuit.CHANNELS + 1):
         _, oy = tile_origin(index)
-        lane = 59.4 + (index - 1) * 0.9
+        lane = SWN_LANE_X + (index - 1) * SWN_PITCH
         exit_y = round(oy + Y_SWN_LANE, 4)
         ref, pin = targets[index]
         target = board.pad(ref, pin)
         net = f"SWN{index}"
-        approach = (lane, target[1])
         # Both horizontals run on B.Cu and only the vertical lane on F.Cu, so
         # a lane and a horizontal can never meet -- the fan needs no ordering.
         exit_point = (TILE_ORIGIN[0] + TILE_EXIT_X, exit_y)
         board.via(net, *exit_point)
         board.track(net, [exit_point, (lane, exit_y)], layer=pcbnew.B_Cu)
         board.via(net, lane, exit_y)
-        board.track(net, [(lane, exit_y), approach])
-        board.via(net, *approach)
-        landing = (target[0] - 2.6, target[1])
-        board.track(net, [approach, landing], layer=pcbnew.B_Cu)
-        board.via(net, *landing)
-        board.track(net, [landing, target])
+        board.track(net, [(lane, exit_y), (lane, target[1])])
+        board.track(net, [(lane, target[1]), target])
 
 
 def route_switch_control(board):
-    """One control line to all six switch cells, run on B.Cu."""
-    spine_x = 86.5
-    packages = ("U8", "U9", "U10")
-    source = board.pad("J8", 1)
-    # The spine has to span every branch off it, including the ones that
-    # come over the top of the first package.
-    board.track("SW_CTL", [source, (spine_x, source[1])], layer=pcbnew.B_Cu)
-    board.track("SW_CTL", [(spine_x, 18.5), (spine_x, 84.0)], layer=pcbnew.B_Cu)
-    for ref, pin in [(ref, pin) for ref in packages for pin in (13, 5)]:
-        target = board.pad(ref, pin)
-        if pin == 13:
-            # Right-hand side: straight in from the spine.
-            landing = (target[0] + 2.4, target[1])
-            board.track("SW_CTL", [(spine_x, target[1]), landing], layer=pcbnew.B_Cu)
-        else:
-            # Left-hand side. Coming in level with the pin would run through
-            # this package's own vias, so drop down the outside instead: over
-            # the top of the package, then down a clear column at x = 66.
-            centre = to_mm(board.footprints[ref].GetPosition().y)
-            over = centre - 7.5
-            landing = (66.0, target[1])
-            board.track("SW_CTL", [(spine_x, over), (66.0, over), landing],
-                        layer=pcbnew.B_Cu)
-        board.via("SW_CTL", *landing)
-        board.track("SW_CTL", [landing, target])
+    """One control line to all six switch cells, run on B.Cu down the right."""
+    source = board.stub_via("J8", 1, (0.0, 1.7))
+    board.track("SW_CTL", [source, (SPINE_X, source[1])], layer=pcbnew.B_Cu)
+    board.track("SW_CTL", [(SPINE_X, 10.0), (SPINE_X, ROW_SMALL - 3.0)],
+                layer=pcbnew.B_Cu)
+    for ref in ("U8", "U9", "U10"):
+        for pin in (13, 5):
+            target = board.pad(ref, pin)
+            if pin == 13:
+                # Right-hand side: the spine itself is the landing point.
+                landing = (SPINE_X, target[1])
+            else:
+                # Left-hand side. Pin 5 sits at the same y as pin 10, whose via
+                # is in the way, so this goes over the top of the package and
+                # down the reserved column rather than straight across.
+                over = board.pad(ref, 14)[1] - 1.2
+                landing = (CTL_LEFT_X, target[1])
+                board.track("SW_CTL", [(SPINE_X, over), (CTL_LEFT_X, over),
+                                       landing], layer=pcbnew.B_Cu)
+            board.via("SW_CTL", *landing)
+            board.track("SW_CTL", [landing, target])
     for ref, pin in (("R701", 1), ("C703", 1)):
-        landing = board.stub_via(ref, pin, (-1.5, 0.0))
-        # Return above the last package, not across its ground vias.
-        board.track("SW_CTL", [landing, (landing[0], 76.0), (spine_x, 76.0)],
+        landing = board.stub_via(ref, pin, (0.0, -1.3))
+        board.track("SW_CTL", [landing, (landing[0], ROW_SMALL - 3.0),
+                               (SPINE_X, ROW_SMALL - 3.0)],
                     layer=pcbnew.B_Cu)
 
 
 def route_power(board):
-    """The input chain, then everything else drops onto a plane."""
-    board.track("VIN", [board.pad("J9", 1), board.pad("F701", 1)], width=POWER_TRACK)
-    board.track("VFUSED", [board.pad("F701", 2), board.pad("D701", 2)], width=POWER_TRACK)
-    board.track("V+", [board.pad("D701", 1), board.pad("D702", 1)], width=POWER_TRACK)
-    board.stub_via("J9", 2, (0.0, 3.0))
-    board.stub_via("D702", 1, (0.0, -2.2))
-    board.stub_via("D702", 2, (0.0, 2.2))
+    """The input chain and the inverter; everything else drops onto a plane."""
+    j9 = board.pad("J9", 1)
+    board.track("VIN", [j9, (2.6, j9[1]), board.pad("F701", 1)],
+                width=POWER_TRACK)
+    board.track("VFUSED", [board.pad("F701", 2), board.pad("D701", 2)],
+                width=POWER_TRACK)
+    board.track("V+", [board.pad("D701", 1), board.pad("D702", 1)],
+                width=POWER_TRACK)
 
-    # Mid-rail divider, kept clear of the isolation resistor between them.
-    board.track("MIDREF", [board.pad("R702", 2), (48.2, 97.0), (48.2, 103.0),
-                           board.pad("R703", 1)])
-    board.track("MIDREF", [(48.2, 103.0), (48.2, 105.0), board.pad("C705", 1)])
-    board.track("MIDREF", [(48.2, 101.135), board.pad("U7", 3)])
-    board.track("AGND_DRV", [board.pad("U7", 1), board.pad("R704", 1)])
-    board.track("SPARE", [board.pad("U7", 6), board.pad("U7", 7)])
+    # The flying capacitor is the only part that has to stay beside the pump.
+    board.track("CPFLY_P", [board.pad("U7", 2), (38.0, board.pad("U7", 2)[1]),
+                            board.pad("C705", 1)])
+    board.track("CPFLY_N", [board.pad("U7", 4), (38.0, board.pad("U7", 4)[1]),
+                            board.pad("C705", 2)])
+    # Output down to the reservoir and the filter, on a lane of its own between
+    # the inverter's row and the small stuff below it.
+    lane = ROW_SMALL - 2.2
+    board.track("CPOUT", [board.pad("U7", 5), (46.5, board.pad("U7", 5)[1]),
+                          (46.5, lane), (board.pad("R702", 1)[0], lane),
+                          (board.pad("C706", 1)[0], lane),
+                          board.pad("C706", 1)])
+    board.track("CPOUT", [(board.pad("R702", 1)[0], lane), board.pad("R702", 1)])
 
-    # Everything else meets its rail through the planes.
-    for ref, pin, offset in (("R702", 1, (0.0, -2.2)),
-                             ("R703", 2, (0.0, 2.2)),
-                             ("R704", 2, (-2.2, 0.0)),
-                             ("C705", 2, (0.0, 2.2)),
-                             ("U7", 8, (0.0, -2.2)),
-                             ("U7", 4, (0.0, 2.2)),
-                             ("U7", 5, (2.2, 0.0)),
-                             ("U7", 2, (-2.2, 0.0)),
-                             ("C701", 1, (0.0, -3.4)), ("C701", 2, (0.0, 3.4)),
-                             ("C702", 1, (0.0, -2.2)), ("C702", 2, (0.0, 2.2)),
-                             ("C704", 1, (0.0, -2.2)), ("C704", 2, (0.0, 2.2)),
-                             ("C706", 1, (0.0, -2.2)), ("C706", 2, (0.0, 2.2)),
-                             ("C707", 1, (0.0, -2.2)), ("C707", 2, (0.0, 2.2)),
-                             ("C708", 1, (0.0, -2.2)), ("C708", 2, (0.0, 2.2)),
-                             ("C709", 1, (0.0, -2.2)), ("C709", 2, (0.0, 2.2))):
+    # DIN pin 8 to the unfitted jumper, kept below the header rather than
+    # above it, where the OUT nets are fanning in.
+    # DIN pin 8 leaves to the left, away from the six drops fanning into the
+    # header from above.
+    din8 = board.pad("J7", 8)
+    board.track("DIN8", [din8, (11.5, din8[1]), (11.5, ROW_CONN),
+                         board.pad("JP1", 1)])
+
+    for ref, pin, offset in (("J9", 2, (0.0, 2.0)),
+                             ("D702", 2, (1.9, 0.0)),
+                             ("D703", 1, (-1.9, 0.0)),
+                             ("D703", 2, (1.9, 0.0)),
+                             # C701's rails leave vertically: its neighbours
+                             # already own the space either side of it.
+                             ("C701", 1, (0.0, -2.2)),
+                             ("C701", 2, (0.0, 2.2)),
+                             ("U7", 1, (-1.4, -1.0)),
+                             ("U7", 3, (-1.4, 0.0)),
+                             ("U7", 8, (1.4, 0.0)),
+                             ("C704", 1, (-1.2, 0.0)), ("C704", 2, (1.2, 0.0)),
+                             ("C706", 2, (1.2, 0.0)),
+                             ("R702", 2, (0.0, 1.3)),
+                             ("C707", 1, (-1.2, 0.0)), ("C707", 2, (1.2, 0.0)),
+                             ("C708", 1, (-1.2, 0.0)), ("C708", 2, (1.2, 0.0)),
+                             ("J7", 7, (0.0, 2.0)),
+                             ("JP1", 2, (1.3, 0.0)),
+                             ("J8", 2, (0.0, 3.0)),
+                             ("R701", 2, (0.0, 1.3)),
+                             ("C703", 2, (0.0, 1.3))):
         board.stub_via(ref, pin, offset)
 
 
 def route_right_column(board):
-    """Switch-package supplies, decoupling and the DIN header."""
-    for ref, plus, minus in (("U8", 14, 7), ("U9", 14, 7), ("U10", 14, 7)):
-        board.stub_via(ref, plus, (0.0, -2.4))
-        board.stub_via(ref, minus, (0.0, 2.4))
-    # Spare switch cells and the switched-node returns all sit on ground.
-    grounded = [(ref, pin) for ref in ("U8", "U9", "U10")
-                for pin in (2, 4, 8, 9, 10, 11)]
-    for ref, pin in grounded:
-        pad = board.pad(ref, pin)
-        offset = (2.2, 0.0) if pad[0] > 70.0 else (-2.2, 0.0)
-        board.stub_via(ref, pin, offset)
+    """Switch-package supplies, decoupling and the grounded spare cells."""
+    # Every non-signal pin drops onto its plane through a via *inside* the
+    # package outline. Outboard there is no room -- the switched-node lanes
+    # come up the left and the control spine runs down the right -- and the
+    # pins are on a 0.65 mm pitch, so the vias also alternate between two
+    # columns: a 0.6 mm via needs 0.8 mm of pitch to clear its neighbour.
+    NEAR, FAR = 1.5, 2.4
+    inboard = {2: NEAR, 4: NEAR, 6: NEAR, 7: FAR,          # left-hand pins
+               8: -NEAR, 9: -FAR, 10: -NEAR, 11: -FAR,     # right-hand pins
+               12: -NEAR, 14: -FAR}
     for ref in ("U8", "U9", "U10"):
-        for pin in (6, 12):
-            board.stub_via(ref, pin, (-2.2, 0.0) if pin == 6 else (2.2, 0.0))
+        for pin, dx in inboard.items():
+            board.stub_via(ref, pin, (dx, 0.0), width=TRACK)
     for ref in ("C801", "C802", "C803", "C804", "C805", "C806"):
-        board.stub_via(ref, 1, (-1.5, 0.0))
-        board.stub_via(ref, 2, (1.5, 0.0))
-
-    board.stub_via("J7", 7, (2.5, 0.0))
-    board.track("DIN8", [board.pad("J7", 8), board.pad("JP1", 1)])
-    board.stub_via("JP1", 2, (1.3, 0.0))
-    board.stub_via("J8", 2, (2.5, 0.0))
-    board.stub_via("R701", 2, (1.3, 0.0))
-    board.stub_via("C703", 2, (1.3, 0.0))
+        board.stub_via(ref, 1, (-1.2, 0.0))
+        board.stub_via(ref, 2, (1.2, 0.0))
 
 
 def add_copper(board, rectangle):
@@ -559,14 +638,16 @@ def silkscreen(board, rectangle):
     left, top, right, bottom = rectangle
     # PCB_TEXT is centred on its position, so titles sit at mid-span.
     middle = (left + right) / 2
-    board.text("RMC pizz/arco  6 channel  rev A", middle, top + 1.8, size=1.4)
-    # "FLOATING" is the part that breaks things if ignored, so it stays first;
-    # the range itself comes from design.py so it cannot drift from the sheet.
-    board.text(f"FLOATING SUPPLY ONLY   {circuit.SUPPLY_RANGE}",
-               middle, bottom - 1.8, size=1.2)
+    board.text("RMC pizz/arco  6 channel  rev B", middle, top + 1.6, size=1.2)
+    # The supply is the thing that breaks the board if it is got wrong, and it
+    # is no longer a range -- both rails are derived from this one, so 12 V
+    # here puts 24 V across the CD4066B. The figure comes from design.py so it
+    # cannot drift from the sheet.
+    board.text(f"{circuit.SUPPLY_RANGE}   AGND = PACK NEGATIVE",
+               middle, bottom - 1.6, size=1.0)
     for index in range(1, circuit.CHANNELS + 1):
         _, oy = tile_origin(index)
-        board.text(f"CH{index} G/W/R", TILE_ORIGIN[0] + 6.0, oy - 1.4, size=0.9)
+        board.text(f"CH{index} R/W/G", TILE_ORIGIN[0] + 1.0, oy - 1.2, size=0.8)
 
 
 def main():
@@ -582,8 +663,7 @@ def main():
     route_power(board)
     route_right_column(board)
 
-    _, last_y = tile_origin(circuit.CHANNELS)
-    rectangle = (0.0, 0.0, 88.0, 112.0)
+    rectangle = (0.0, 0.0, BOARD_W, BOARD_H)
     board.outline(rectangle)
     inner = (rectangle[0] + 0.3, rectangle[1] + 0.3,
              rectangle[2] - 0.3, rectangle[3] - 0.3)

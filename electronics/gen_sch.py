@@ -67,7 +67,7 @@ def channel_block(sch, index, origin):
     ground(40.64, 16.51)
 
     # -- unity-gain buffer ----------------------------------------------
-    buf = sch.place(f"U{n}", "rmc:OPA2191", circuit.PARTS["U7"].value, *at(55.88, 5.08),
+    buf = sch.place(f"U{n}", "rmc:OPA2191", circuit.PARTS[f"U{n}"].value, *at(55.88, 5.08),
                     footprint=circuit.build_footprint(f"U{n}"), unit=1,
                     extra={"datasheet": circuit.OPAMP_DATASHEET})
     sch.wire(at(40.64, Y_MAIN), buf.pin(3))
@@ -89,7 +89,7 @@ def channel_block(sch, index, origin):
     sch.wire(at(68.58, Y_APP), r_lag.pin(1))
     sch.wire(r_lag.pin(2), at(101.6, Y_APP))
 
-    allpass = sch.place(f"U{n}", "rmc:OPA2191", circuit.PARTS["U7"].value, *at(116.84, Y_BUFFB),
+    allpass = sch.place(f"U{n}", "rmc:OPA2191", circuit.PARTS[f"U{n}"].value, *at(116.84, Y_BUFFB),
                         footprint=circuit.build_footprint(f"U{n}"), unit=2,
                         mirror="x", extra={"datasheet": circuit.OPAMP_DATASHEET})
     # Inverting input column, running up to the feedback pair.
@@ -125,7 +125,7 @@ def channel_block(sch, index, origin):
     sch.wire(at(157.48, Y_OUT), at(157.48, Y_FBC))
 
     # -- supply pins and decoupling --------------------------------------
-    supply = sch.place(f"U{n}", "rmc:OPA2191", circuit.PARTS["U7"].value, *at(190.5, Y_BUFFB),
+    supply = sch.place(f"U{n}", "rmc:OPA2191", circuit.PARTS[f"U{n}"].value, *at(190.5, Y_BUFFB),
                        footprint=circuit.build_footprint(f"U{n}"), unit=3,
                        extra={"datasheet": circuit.OPAMP_DATASHEET})
     sch.wire(at(182.88, 5.08), supply.pin(8))
@@ -178,6 +178,11 @@ def hang(sch, ref, position, upper_net, lower_net, axis=(0, 180)):
 
 
 def power_section(sch, origin):
+    """The pack, its protection, and the inverter that makes the negative rail.
+
+    Laid out the way a bipolar supply reads: V+ furniture above the ground
+    bus, V- furniture below it, and the inverter to the right feeding both.
+    """
     ox, oy = origin
 
     def at(x, y):
@@ -188,11 +193,17 @@ def power_section(sch, origin):
         long buses that would have to cross the signal wiring."""
         sch.label(net, ox + x, oy + y, angle=angle)
 
+    BUS_Y = 25.4          # the AGND bus everything grounds to
+    CPOUT_Y = 5.08        # the inverter's raw output, before the filter
+
     # -- input chain -----------------------------------------------------
     j9 = sch.place("J9", "Connector_Generic:Conn_01x02", circuit.PARTS["J9"].value, *at(0, 0),
                    footprint=circuit.build_footprint("J9"), angle=180)
-    sch.wire(j9.pin(2), at(12.7, -2.54))
-    rail(12.7, -2.54, "V-", 0)
+    # The pack's negative terminal is audio ground now, not a rail of its own.
+    # It gets its own ground symbol here rather than a long wire down to the
+    # bus, which would have to cross the incoming positive lane to get there.
+    sch.wire(j9.pin(2), at(12.7, -2.54), at(12.7, -12.7))
+    sch.power("power:GNDA", *at(12.7, -12.7), value="AGND", angle=180)
 
     fuse = place_passive(sch, "F701", at(22.86, 0), angle=90)
     sch.wire(j9.pin(1), fuse.pin(1))
@@ -201,88 +212,73 @@ def power_section(sch, origin):
     sch.wire(diode.pin(1), at(53.34, 0))
     rail(53.34, 0, "V+", 0)
 
-    # -- rail furniture, each hung between two stubs ----------------------
-    for x, ref, axis in ((0, "D702", (270, 90)), (13.97, "C701", (0, 180)),
-                         (26.67, "C702", (0, 180)), (39.37, "C704", (0, 180))):
-        _, top, bottom = hang(sch, ref, at(x, 15.24), "V+", "V-", axis=axis)
+    # -- rail furniture, hung either side of the ground bus ---------------
+    for x, ref, axis in ((0, "D702", (270, 90)), (12.7, "C701", (0, 180)),
+                         (25.4, "C704", (0, 180))):
+        _, top, bottom = hang(sch, ref, at(x, 15.24), "V+", "AGND", axis=axis)
         sch.wire(top, at(x, 7.62))
         rail(x, 7.62, "V+", 90)
-        sch.wire(bottom, at(x, 22.86))
-        rail(x, 22.86, "V-", 270)
+        sch.wire(bottom, at(x, BUS_Y))
 
-    # -- mid-rail reference ----------------------------------------------
-    div_top = place_passive(sch, "R702", at(0, 34.29))
-    sch.wire(div_top.pin(1), at(0, 29.21))
-    rail(0, 29.21, "V+", 90)
-    div_bottom = place_passive(sch, "R703", at(0, 46.99))
-    sch.wire(div_top.pin(2), div_bottom.pin(1))
-    sch.wire(div_bottom.pin(2), at(0, 54.61))
-    rail(0, 54.61, "V-", 270)
+    for x, ref, axis in ((0, "D703", (270, 90)), (12.7, "C707", (0, 180)),
+                         (25.4, "C708", (0, 180))):
+        _, top, bottom = hang(sch, ref, at(x, 35.56), "AGND", "V-", axis=axis)
+        sch.wire(top, at(x, BUS_Y))
+        sch.wire(bottom, at(x, 45.72))
+        rail(x, 45.72, "V-", 270)
 
-    filt = place_passive(sch, "C705", at(12.7, 46.99))
-    sch.wire(div_bottom.pin(1), filt.pin(1))
-    sch.wire(filt.pin(2), at(12.7, 54.61))
-    rail(12.7, 54.61, "V-", 270)
+    # -- the inverter ------------------------------------------------------
+    pump = sch.place("U7", "rmc:TC1044S", circuit.PARTS["U7"].value, *at(86.36, 12.7),
+                     footprint=circuit.build_footprint("U7"),
+                     extra={"datasheet": circuit.PUMP_DATASHEET})
+    sch.wire(pump.pin(8), at(66.04, 5.08))
+    rail(66.04, 5.08, "V+", 180)
+    # BOOST. Tied high on purpose -- open, the oscillator sits near 10 kHz,
+    # which is in the audio band and beside a 3M3-loaded front end.
+    sch.wire(pump.pin(1), at(68.58, 7.62))
+    rail(68.58, 7.62, "V+", 180)
+    # LV must be left open above 3.5 V, and OSC is unused; both are flagged
+    # so ERC knows the omission is deliberate.
+    sch.no_connect(*pump.pin(6))
+    sch.no_connect(*pump.pin(7))
 
-    buffer_unit = sch.place("U7", "rmc:OPA2191", circuit.PARTS["U7"].value, *at(35.56, 45.72),
-                            footprint=circuit.build_footprint("U7"), unit=1,
-                            extra={"datasheet": circuit.OPAMP_DATASHEET})
-    sch.wire(filt.pin(1), buffer_unit.pin(3))
+    # Flying capacitor across CAP+ / CAP-.
+    _, fly_top, fly_bottom = hang(sch, "C705", at(104.14, 15.24),
+                                  "CPFLY_P", "CPFLY_N")
+    sch.wire(pump.pin(2), at(104.14, 10.16), fly_top)
+    sch.wire(fly_bottom, at(104.14, 20.32), pump.pin(4))
 
-    iso = place_passive(sch, "R704", at(55.88, 45.72), angle=90)
-    sch.wire(buffer_unit.pin(1), iso.pin(1))
-    # The ground bus is drawn as a polyline with a vertex at every pin that
-    # lands on it: KiCad connects a pin at a wire end, but not mid-span.
-    sch.wire(iso.pin(2), at(66.04, 45.72), at(69.85, 45.72), at(88.9, 45.72),
-             at(101.6, 45.72), at(114.3, 45.72), at(127.0, 45.72))
-    # Feedback is taken beyond the isolation resistor, so the loop still
-    # holds the bypassed ground node at the reference voltage.
-    sch.wire(buffer_unit.pin(2), at(24.13, 48.26), at(24.13, 58.42),
-             at(66.04, 58.42), at(66.04, 45.72))
-    sch.wire(at(69.85, 45.72), at(69.85, 52.07))
-    sch.power("power:GNDA", *at(69.85, 52.07), value="AGND")
+    # Output, then the reservoir and the RC that keeps the pump's ripple out
+    # of the rail the signal circuitry actually runs on.
+    sch.wire(pump.pin(5), at(116.84, CPOUT_Y), at(129.54, CPOUT_Y))
+    _, res_top, res_bottom = hang(sch, "C706", at(116.84, 12.7), "CPOUT", "AGND")
+    sch.wire(res_top, at(116.84, CPOUT_Y))
+    sch.wire(res_bottom, at(116.84, BUS_Y))
+    _, filt_top, filt_bottom = hang(sch, "R702", at(129.54, 12.7), "CPOUT", "V-")
+    sch.wire(filt_top, at(129.54, CPOUT_Y))
+    sch.wire(filt_bottom, at(129.54, 20.32))
+    rail(129.54, 20.32, "V-", 270)
 
-    for x, ref, upper in ((88.9, "C706", True), (101.6, "C707", False),
-                          (114.3, "C708", True), (127.0, "C709", False)):
-        if upper:
-            _, top, bottom = hang(sch, ref, at(x, 41.91), "V+", "AGND")
-            sch.wire(top, at(x, 34.29))
-            rail(x, 34.29, "V+", 90)
-            sch.wire(bottom, at(x, 45.72))
-        else:
-            _, top, bottom = hang(sch, ref, at(x, 49.53), "AGND", "V-")
-            sch.wire(top, at(x, 45.72))
-            sch.wire(bottom, at(x, 57.15))
-            rail(x, 57.15, "V-", 270)
-
-    # -- spare half, parked as a unity buffer -----------------------------
-    spare = sch.place("U7", "rmc:OPA2191", circuit.PARTS["U7"].value, *at(35.56, 74.93),
-                      footprint=circuit.build_footprint("U7"), unit=2,
-                      extra={"datasheet": circuit.OPAMP_DATASHEET})
-    sch.wire(spare.pin(5), at(20.32, 72.39), at(20.32, 76.2))
-    sch.power("power:GNDA", *at(20.32, 76.2), value="AGND")
-    sch.wire(spare.pin(6), at(24.13, 77.47), at(24.13, 83.82),
-             at(48.26, 83.82), at(48.26, 74.93), spare.pin(7))
-
-    supply = sch.place("U7", "rmc:OPA2191", circuit.PARTS["U7"].value, *at(74.93, 74.93),
-                       footprint=circuit.build_footprint("U7"), unit=3,
-                       extra={"datasheet": circuit.OPAMP_DATASHEET})
-    sch.wire(supply.pin(8), at(74.93, 63.5))
-    rail(74.93, 63.5, "V+", 90)
-    sch.wire(supply.pin(4), at(74.93, 86.36))
-    rail(74.93, 86.36, "V-", 270)
+    # -- the ground bus ----------------------------------------------------
+    # Drawn as a polyline with a vertex at every pin that lands on it: KiCad
+    # connects a pin at a wire end, but not mid-span. The inverter's GND pin
+    # falls exactly on this lane, which is why it is a vertex and not a stub.
+    sch.wire(at(0, BUS_Y), at(12.7, BUS_Y), at(25.4, BUS_Y), at(38.1, BUS_Y),
+             pump.pin(3), at(116.84, BUS_Y))
+    sch.wire(at(38.1, BUS_Y), at(38.1, 30.48))
+    sch.power("power:GNDA", *at(38.1, 30.48), value="AGND")
 
     # -- ERC power flags --------------------------------------------------
     for offset, (ref, net, angle) in enumerate((("#FLG01", "V+", 270),
                                                 ("#FLG02", "V-", 270),
                                                 ("#FLG03", "AGND", 270))):
-        x = 149.86 + offset * 15.24
-        flag = sch.place(ref, "power:PWR_FLAG", "PWR_FLAG", *at(x, 10.16))
-        sch.wire(flag.pin(1), at(x, 15.24))
+        x = 60.96 + offset * 15.24
+        flag = sch.place(ref, "power:PWR_FLAG", "PWR_FLAG", *at(x, 40.64))
+        sch.wire(flag.pin(1), at(x, 45.72))
         if net == "AGND":
-            sch.power("power:GNDA", *at(x, 15.24), value="AGND")
+            sch.power("power:GNDA", *at(x, 45.72), value="AGND")
         else:
-            rail(x, 15.24, net, angle)
+            rail(x, 45.72, net, angle)
 
 
 def switch_section(sch, origin):
@@ -420,10 +416,14 @@ def build(path):
 
     # These reach the schematic PDF, which is what gets sent to RMC, so the
     # supply figures come from design.py rather than being written out again.
-    sch.text(f"SUPPLY: {circuit.SUPPLY_RANGE}, and it MUST float -- signal "
-             f"ground (GNDA) sits at mid-supply.", 300.0, 148.0, size=2.0)
-    sch.text(f"Intended source: {circuit.SUPPLY_INTENT}.", 300.0, 153.0, size=2.0)
-    sch.text("Switch closed = all-pass grounded = inverted (-1).", 300.0, 158.0, size=2.0)
+    sch.text(f"SUPPLY: {circuit.SUPPLY_RANGE}. U7 inverts it, so the rails are "
+             f"+/-9V about GNDA and GNDA IS the pack's negative terminal.",
+             300.0, 148.0, size=2.0)
+    sch.text("Do NOT feed this board 12V: both rails scale with the input, and "
+             "24V rail-to-rail is past the CD4066B's 20V maximum.",
+             300.0, 153.0, size=2.0)
+    sch.text(f"Intended source: {circuit.SUPPLY_INTENT}.", 300.0, 158.0, size=2.0)
+    sch.text("Switch closed = all-pass grounded = inverted (-1).", 300.0, 163.0, size=2.0)
 
     sch.auto_junctions()
     sch.save(path)

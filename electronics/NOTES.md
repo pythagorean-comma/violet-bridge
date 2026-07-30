@@ -34,8 +34,9 @@ The drawing specifies a single floating +12 V supply but is drawn around a
 bipolar ground, so:
 
 - **Mid-rail split.** `AGND` — the ground in RMC's drawing — is generated at
-  half supply by a 10k/10k divider buffered by U7A, giving the amplifiers
-  ±6 V. Because the supply floats this costs nothing and **no coupling
+  half supply by a 100k/100k divider buffered by U7A, so the amplifiers see
+  half the supply either side of it: ±4.5 V on a 9 V pack, ±6 V on
+  12 V. Because the supply floats this costs nothing and **no coupling
   capacitors are needed anywhere in the signal path**. R704 (10R) isolates the
   bypass capacitance from the buffer's output while keeping it inside the
   feedback loop. U7B is a spare half, parked as a unity buffer.
@@ -59,9 +60,11 @@ bipolar ground, so:
 
 ## Supply requirement — important
 
-> **Chosen arrangement: a 9 V onboard rechargeable pack, inside the
-> instrument.** RMC's drawing specifies a 12 V wallwart; the board accepts
-> either, and the reasoning for taking the battery is below.
+> **Intended arrangement: a 9 V onboard rechargeable pack, inside the
+> instrument** — provisionally, pending the headroom check below, and it must
+> be a pack that genuinely holds 9 V under load. RMC's drawing specifies a
+> 12 V wallwart; the board accepts anything in 9–15 V, so this is reversible
+> after building.
 
 **9–15 V DC, and it must float** (no connection to mains earth). Floating is
 the constraint that actually matters: the mid-rail buffer makes signal ground
@@ -69,7 +72,7 @@ half the supply, so an earth-referenced source would short it. A battery is
 inherently isolated, so an onboard pack satisfies this for free — it is a
 better source here than a wallwart, not a worse one.
 
-RMC's drawing says 12 V, but nothing on the board requires it:
+No *component* on the board requires 12 V:
 
 | Part | Range |
 | --- | --- |
@@ -78,21 +81,79 @@ RMC's drawing says 12 V, but nothing on the board requires it:
 | C701 bulk | 25 V rated |
 | D702 SMAJ15A | 15 V standoff, never conducts in range |
 
-So a **9 V onboard rechargeable pack works as supplied**, with no component
-change. It costs about **2.6 dB** of headroom against 12 V (±4.5 V rails
-rather than ±6 V). Two things make that easier than it sounds: there is no
-gain anywhere in the signal path — the buffer is unity and the all-pass is
-±1 — so the headroom needed is the white element's own peak output, not a
-multiple of it; and **PZT 1 never passes through an op-amp**, running straight
-to the DIN, so it cannot clip whatever the rails are doing. Only the PZT 2
-contribution is at risk. See question 6 below.
+But that is not the same as 12 V being arbitrary, and it should not be read
+that way. **RMC specified 12 V over the far more convenient 9 V, and they know
+their own elements.** Headroom is the obvious reason, so their choice is
+evidence that the elements produce peaks worth leaving room for.
+
+Running at 9 V costs about **2.5 dB** of headroom (±4.5 V rails rather than
+±6 V). Two things limit the exposure: there is no gain anywhere in the signal
+path — the buffer is unity, the all-pass is ±1 — so what is needed is the
+white element's own peak, not a multiple of it; and **PZT 1 never passes
+through an op-amp**, running straight to the DIN, so it cannot clip whatever
+the rails do. Only the PZT 2 contribution is at risk, and it is attenuated at
+the summing node relative to the op-amp output. Clipping would therefore be
+transient distortion on the hardest attacks, not gross breakup.
+
+### Checking the headroom
+
+The deciding number is the white element's **peak open-circuit output on the
+hardest pizzicato**. It is worth measuring rather than asking: it depends on
+this instrument, these strings and this player, so a figure from RMC is only a
+cross-check.
+
+| Supply | Rails | Usable swing (OPA2191 is rail-to-rail) |
+| --- | --- | --- |
+| 12 V | ±6 V | ~±5.9 V |
+| 9 V | ±4.5 V | ~±4.4 V |
+
+To measure: wire one white element to a **3M3 resistor to ground with 100 pF
+across it** — that replicates exactly what the buffer input sees — and probe
+that node with a **×10 scope probe** (10 MΩ, ~12 pF, light enough not to
+disturb it). Single-shot trigger, hardest pizzicato you would ever play, on
+the lowest and the highest strings; the worst case governs. A multimeter is no
+use here — it averages, and the transient peak is the whole question.
+
+The buffer sees very nearly the open-circuit voltage, so element peak ≈ op-amp
+peak: the 100 pF is only a mild divider against the element's own capacitance
+(×0.91 for a 1 nF element, ×0.99 for 10 nF).
+
+> **A "9 V rechargeable" is not necessarily 9 V.** NiMH types sit near
+> **8.4 V** fully charged and sag under load, which gives ±4.2 V rails or
+> worse and quietly invalidates the sums above. Use a **regulated Li-ion type
+> that holds ~9 V** (Fishman's Universal Rechargeable Battery Pack is that
+> sort of product), and **measure the pack loaded** rather than trusting the
+> label.
+
+**This need not be settled before building** — the board accepts 9–15 V with
+no component change. Fit a pack, play it, and if the loudest attacks distort,
+the options in order of practicality are:
+
+1. **Stay at 9 V** if the measurement allows, with a pack that genuinely holds
+   9 V under load.
+2. **RMC's 12 V wallwart**, if the instrument need not be self-contained.
+   +2.5 dB.
+3. **A 12 V pack in 9 V form factor.** These exist — the "12 Volt Mod" is
+   smaller than a PP3 — but confirm it is *rechargeable* and how it charges
+   before relying on it. Hobby 3S Li-ion packs are not a sensible answer here:
+   they generally need a balance charger and are frequently unprotected cells,
+   which is not something to fit inside a wooden instrument.
+4. **A ±9 V charge-pump respin** (ICL7660 / TC1044S / LT1054). Best headroom
+   of the lot at **+6.1 dB**, keeps the convenient 9 V pack, and makes audio
+   ground the battery negative — which would remove the grounding hazard
+   described under "Installing it". This is a board change, not a swap.
 
 **Do not run two packs in series at 18 V.** That is the CD4066B's absolute
 maximum with no margin, and D702 would sit in conduction. It needs a
 higher-voltage switch or an LDO down to 12 V — a respin, not a relabel.
 
 **Do not boost 9 V to 12 V.** A switching converter beside a 3M3-loaded piezo
-front end puts noise in the worst possible place to buy 2.6 dB.
+front end puts noise in the worst possible place to buy 2.5 dB.
+
+That is an argument about the return, not about switchers in general. An
+*inverter* to **±9 V** is a different proposition — about **6.1 dB**, roughly
+2.4× the swing — and is the standard way guitar pedals win headroom from a 9 V
+supply. See "Checking the headroom".
 
 Total draw is about **2.1 mA** — fourteen OPA2191 halves at 140 µA each, plus
 45 µA for the mid-rail divider and a negligible amount for the switches. On a
@@ -156,12 +217,12 @@ Two things follow from this that are easy to get wrong:
 | | Pin 1 | Pin 2 | Pin 3 | |
 | --- | --- | --- | --- | --- |
 | **J1–J6** saddle 1–6 | shield | white | red | |
-| **J7** to DIN-8 | pins 1–6 = channels 1–6 | 7 = audio ground | 8 = reserved | see question 2 |
+| **J7** to DIN-8 | pins 1–6 = channels 1–6 | 7 = audio ground | 8 = reserved | see the DIN pin 8 question |
 | **J8** pizz/arco toggle | switch | + rail | | DC only, no audio |
 | **J9** battery | + | − | | 9–15 V, floating |
 
 Switch **closed** grounds the all-pass and inverts PZT 2 relative to PZT 1.
-Which of those is "pizz" and which "arco" is question 3 for RMC.
+Which of those is "pizz" and which "arco" is an open question for RMC.
 
 ### Grounding — read before wiring
 
@@ -217,7 +278,7 @@ What is lost:
   no longer drives `C04 ‖ C05`; those 1.72 nF stop being a source and become a
   shunt load across the output. The red element then works into that extra
   capacitance and loses level by the divider against its own — how much
-  depends on the element capacitance, question 5.
+  depends on the element capacitance, which is an open question for RMC.
 
 So the signature to recognise is **suddenly thinner and quieter, with the
 pizz/arco switch having no effect**.
@@ -252,7 +313,7 @@ Moving the *board* out is harder:
 - **It relocates the highest-impedance node in the design.** The white
   element's 3M3 load and its buffer would move to the far end of that cable.
   Cable capacitance forms a divider against the element — how much loss
-  depends on the element's own capacitance, which is question 5 — and twelve
+  depends on the element's own capacitance, still an open question — and twelve
   high-impedance lines sharing a multicore risk crosstalk, which attacks
   precisely the per-string separation a hex system exists to provide. Roland
   GK cables work because the GK pickup buffers *at the instrument*, for this
@@ -315,44 +376,47 @@ assembly rather than a bare board, send `fab/rmc-pizz-arco-bom.csv` and
 
 ## Questions for RMC
 
-**What we are building, so the answers land in the right context:** the board
-is mounted **inside the instrument**, powered by a **9 V onboard rechargeable
-pack** — floating, drawing about **2.1 mA** — with the six channels leaving on
-the DIN-8 to an outboard Poly-Drive II. **Not a wallwart.** Where the drawing
-specifies 12 V we have checked every part and the circuit is happy anywhere in
-9–15 V; 9 V costs about 2.6 dB of headroom, which question 3 is about.
+**The wording to send is in [`RMC-QUESTIONS.md`](RMC-QUESTIONS.md)** — kept
+separate so the questions exist in one place only. This section is the *why*:
+what each answer changes for us. Numbering matches.
 
-1. **DIN-8 pinout.** J7 is currently 1–6 = channels 1–6, 7 = ground,
-   8 = reserved. Please confirm the pin assignment the Poly-Drive II expects.
-2. **DIN pin 8 — is it used?** A ground, a shield, or something else? JP1
-   (unfitted) can tie it to ground if that is what it wants.
+1. **Can it run on 9 V.** The pivotal one, and why it leads. Peak element
+   output decides the supply — see "Checking the headroom" above for the
+   ±4.4 V / ±5.9 V thresholds and the measurement we intend to make ourselves.
+   Their figure is a cross-check, not a substitute: the governing number
+   depends on the strings and the player. The sub-questions matter as much as
+   the number — *why* they specified 12 V, and whether they were assuming an
+   outboard mains-powered box rather than an installation inside the
+   instrument. If the latter, their 12 V was free to them and carries no
+   information about headroom at all, and we may have taken the design
+   somewhere they did not intend.
 
-   If it carries a **supply**, we could only use it if that supply is
-   *isolated from DIN ground*. Our audio ground is the mid-rail — pin 7 — so a
-   rail referenced to pin 7 would give us a positive supply and no negative
-   one for signals to swing into. Using it would mean adding a negative-rail
-   generator and re-biasing, which is a respin rather than a wiring change.
-   We only need about 2.1 mA, so it is worth asking.
-3. **Element specification: capacitance and peak output.** Two numbers, both
-   from the same part:
-   - **Capacitance**, because it sets the input high-pass corner against the
-     3M3 bias resistor. For the bottom string of a gamba (D2, 73 Hz) we want
-     it comfortably over 1 nF.
-   - **Peak open-circuit output** on a hard pizzicato, because it decides
-     whether ±4.5 V rails from a 9 V pack are comfortable or marginal. The
-     board applies no gain, so the requirement is simply the element's own
-     peak. We have assumed well under 4 V. If it is higher, we should run 12 V
-     instead of 9 V.
-4. **Does the DIN-8S socket have a switching contact?** There is no power
-   switch on the board, so at 2.1 mA a pack left connected is flat in about
-   ten days. A switched socket would break the battery on unplugging, the way
-   a guitar's TRS output jack does. If not, we will fit a switch in the
-   battery lead.
-5. **Which way round is pizz and which is arco?** The drawing labels the
-   switch `[Space]`. On this board, switch **closed** = all-pass grounded =
-   PZT 2 inverted relative to PZT 1.
-6. **220 pF ‖ 1.5 nF = 1.72 nF.** Is one of these meant to be select-on-test,
-   or is the pair simply how the value is made up? Both are fitted as drawn.
+   A wrong answer here changes the battery, the compartment, the switch
+   arrangement and whether the instrument can be self-contained — decisions
+   wanted before anything is bought or any cavity is cut.
+2. **DIN-8 pinout.** Blocking for the wiring loom, not for the board. Our
+   assignment — pins 1–6 = channels, 7 = ground, 8 = unassigned — is an
+   assumption. If theirs differs it is a rewiring job at the socket, cheap now
+   and tedious later.
+3. **DIN pin 8.** If it is ground or shield, JP1 (fitted unpopulated) ties it
+   there with no cutting. If it is a **supply**, we can only use it when
+   isolated from DIN ground: our audio ground is the mid-rail, so a rail
+   referenced to pin 7 gives a positive supply with no negative side for
+   signals to swing into. Using it would mean a negative-rail generator and a
+   re-bias — a respin, not a wiring change. Worth knowing before assuming the
+   battery is the only option.
+4. **Element capacitance.** Sets the input high-pass corner against the 3M3;
+   under about 1 nF and the bottom string (D2, 73 Hz) starts to suffer. A
+   separate concern from peak output, despite coming from the same part.
+5. **Pizz or arco.** Purely a labelling question — the circuit is symmetric,
+   so this decides which way round the legend on the toggle reads, nothing
+   more.
+6. **220 pF ‖ 1.5 nF.** If the pair is just how 1.72 nF was made up, it
+   collapses to one capacitor and removes six components. If it is
+   select-on-test, both pads stay.
+7. **Switched DIN socket.** Decides whether the battery isolation is free at
+   the socket or needs a switch in the battery lead. Either works; it is an
+   installation choice, and the ten-day standby drain is why it matters.
 
 ## Regenerating
 

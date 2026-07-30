@@ -69,9 +69,17 @@ def compare(actual, expected):
         if nodes not in expected_by_nodes and not name.startswith("unconnected-"):
             problems.append(f"unexpected net {name} = {sorted(nodes)}")
 
+    # An unconnected pin is an error by default -- that is how a wire that
+    # missed its target gets caught. design.NO_CONNECT lists the pins that are
+    # supposed to float, so the exception is declared alongside the circuit
+    # rather than hidden in here.
     for name in sorted(actual):
-        if name.startswith("unconnected-"):
-            problems.append(f"unconnected pin: {name}")
+        if not name.startswith("unconnected-"):
+            continue
+        pins = actual[name]
+        if pins and pins <= set(circuit.NO_CONNECT):
+            continue
+        problems.append(f"unconnected pin: {name}")
 
     # Names should line up too, for the nets the design names explicitly.
     for nodes, name in expected_by_nodes.items():
