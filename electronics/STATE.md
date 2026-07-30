@@ -205,6 +205,204 @@ string balance RMC ask for.
 
 ---
 
+## How to approach the rework: keep the toolchain, rewrite the circuit layer
+
+`electronics/` is not one codebase. It is a **circuit-agnostic KiCad
+toolchain** with a **circuit-specific layer** on top, and the seam is clean.
+Neither "refactor everything" nor "start fresh" is right.
+
+### Keep verbatim — ~1020 lines with no circuit knowledge at all
+
+| File | Lines | What it is |
+| --- | --- | --- |
+| `sexp.py` | 103 | S-expression reader/writer. Remembers which atoms were quoted, which is what makes KiCad load the output at all. |
+| `symlib.py` | 105 | Reads stock symbols and **flattens `extends`** — most stock parts are derived. Reports pin coordinates so wires land on real connection points. |
+| `kicad.py` | 161 | Finds the KiCad install. |
+| `kisch.py` | 343 | The schematic writer: placement, wires, junctions, labels, no-connects, **deterministic UUIDs**, the 1.27 mm grid check. |
+| `verify.py` | 226 | Exports KiCad's netlist and compares it to `design.NETS`. Touches the design only through its public surface. |
+| `build.sh` | 85 | Orchestration, including running `gen_pcb.py` under KiCad's bundled interpreter. |
+
+Two pieces here are expensive to rebuild and silent when wrong:
+
+- **The deterministic UUID scheme.** `kisch._uuid` derives symbol UUIDs from a
+  name hash, and `gen_pcb.py` imports *that same helper* to link footprints
+  back to symbols. It is what makes cross-probing work and stops *Update PCB
+  from Schematic* offering to re-add every footprint. Nothing about it changes
+  with the circuit.
+- **`symlib.flatten`.** Merging a parent's body with a child's properties and
+  renaming unit sub-symbols is fiddly, and it already handles the
+  borrow-and-rename pattern the design depends on.
+
+### Rewrite rather than adapt
+
+The circuit-specific functions only:
+
+- **`design.py`** — keep `Part`, `Design`, `_resistor`, `_capacitor`,
+  `patch_symbol`, `build_footprint`, the constants block. Rewrite `channel()`,
+  `switch_bank()`, `output()`; `power()` mostly *deletes*.
+- **`gen_sch.py`** — keep `place_passive()`, `pin_for()`, `hang()` and the
+  `build()` skeleton. Rewrite the section drawers.
+- **`gen_pcb.py`** — keep the whole `Board` class (`place`, `pad`, `track`,
+  `via`, `stub_via`, `zone`, `outline`, `text`). Rewrite placement and routing.
+
+These change shape too much to bend: one op-amp per channel becomes one quad
+per *two* channels, so the tile becomes a two-channel block, and the power
+section disappears entirely. Adapting `route_channel()` would drag across
+placement constants that no longer mean anything.
+
+### A latent bug to fix on the way past
+
+`gen_project.symbol_library()` hard-codes exactly one part:
+
+```python
+symbol = symlib.flatten("Amplifier_Operational", "OPA2197xD", rename="OPA2191")
+```
+
+The charge-pump branch added `rmc:TC1044S` to `LIBS` and used it, but never
+updated this — so `rmc.kicad_sym` would have been written without TC1044S.
+**Nothing in the build catches it.** The schematic embeds its own copy of every
+symbol in `lib_symbols`, so ERC passes and `verify.py` passes; the fault only
+shows when a human opens the project in KiCad and finds a broken library link
+on that symbol.
+
+Fix by driving `symbol_library()` off `circuit.LIBS` — iterate the entries
+whose nickname is `rmc` — exactly as `library_tables()` already does. Then
+adding a borrowed part to `LIBS` is sufficient and the two cannot drift.
+
+Also in `gen_project.py`: `netclass_patterns` still lists `VIN` and `VFUSED`,
+which go with the power section.
+
+### One verification step the build does not cover
+
+`build.sh` checks the netlist, ERC and DRC, but nothing checks the *project
+library*. Once per session, open `rmc-pizz-arco/rmc-pizz-arco.kicad_pro` in
+KiCad and confirm no symbol shows a broken library link. That is the check
+that would have caught the bug above.
+
+---
+
+## Practical notes for whoever does the rework
+
+Things that cost real time on the abandoned attempt. None are obvious from
+reading the code.
+
+### Toolchain
+
+- `./build.sh` regenerates schematic *and* board from `design.py`. Anything
+  changed in the KiCad GUI is destroyed on the next run.
+- `gen_pcb.py` must run under KiCad's own bundled interpreter (`pcbnew` lives
+  there); everything else runs under `../.venv/bin/python`. `build.sh` handles
+  this, but standalone runs need it done by hand:
+  `"$(../.venv/bin/python kicad.py python)" gen_pcb.py`
+- Running `gen_sch.py` or `verify.py` standalone needs `KICAD10_SYMBOL_DIR`
+  and `KICAD10_FOOTPRINT_DIR` exported — see the top of `build.sh`.
+- **`kisch` enforces a 1.27 mm grid** on every wire endpoint and pin, and
+  raises with a list of offenders. Every schematic coordinate must be a
+  multiple of 1.27. This is a feature; it catches real mistakes.
+- `verify.py` skips the board-linkage check when the board file is absent, so
+  the schematic can be iterated on its own before the board exists.
+
+### Layout
+
+- **Never predict rotated pad positions — measure them.** Place the parts,
+  then dump real pad coordinates and courtyards from the placed footprints and
+  write the routing against those. Guessing KiCad's rotation conventions was
+  the single largest source of wasted iterations.
+- **B.Cu is the V− pour.** Heavy B.Cu routing fragments it, and the symptom is
+  `unconnected_items` on V− in distant parts of the board, not anything that
+  looks like a routing error.
+- **SMD connector pads are F.Cu only.** A B.Cu run to a connector needs a via
+  to get there. The old board's through-hole headers hid this; it broke every
+  B.Cu approach when the connectors went SMD.
+- **A 0.65 mm pin pitch cannot take a row of stub vias.** A 0.6 mm via needs
+  0.8 mm. Move them inboard under the package body and alternate between two
+  columns.
+- **Two parallel components between the same two nets always interleave** when
+  laid side by side in a row — one of the two nets has to cross the other.
+  Either stack them, or put one net on a jumper layer. This applies to the
+  all-pass feedback pair, and it applied to the summing pair before RMC
+  collapsed it to a single capacitor.
+- **Lane pitch:** a lane that ends in a via needs ≥0.625 mm to its neighbour;
+  lanes carrying no vias can go down to 0.5 mm.
+- **Fan-in ordering matters.** With the output header *below* the tiles,
+  channel 1 needs the outermost lane and the lowest approach row, and the
+  header's pin 1 at the far end. Get it backwards and every lane crosses every
+  other. The original board had the header at the top, which is why its
+  ordering looks inverted.
+- **DRC workflow:** group violations by rule and by board region. The six
+  channels are identical, so one tile fault shows up six times — fix it once
+  and the count drops by six. Going 316 → 227 → 69 → 29 → 13 → 5 took five
+  passes done this way.
+
+---
+
+## RMC's reply, 2026-07-30 — verbatim
+
+Kept in full because every paraphrase above is an interpretation, and the
+details of the control network and bypass are specific.
+
+> Well noted that you're switching using CD4066 which eliminates the need for
+> a physical multi-pole switch. It's a quad switch package, one side of each
+> switch is Grounded and the control lines are all paralleled, so the line
+> count is low around the IC, so I'm not sure why you're using 3 of those...
+>
+> Yes, OPA2191 or OPA4191 keeps the board more compact and the power lines
+> shorter.
+>
+> Power can be drawn from the PD2 power rails via DIN-8 connection. Since this
+> is a 6-string instrument, pins 1 thru 6 are separate string signals while
+> bipolar power can travel on pins 7 & 8. Shell/Shield is Ground - no need for
+> multiple Grounds here. DIN-8 Purple #7 and Grey #8 wires must be
+> disconnected from the preamp inputs in order to be carrying power.
+>
+> Drawing power from the preamp rails eliminates power management circuitry on
+> the new board.
+>
+> CD4066 will function properly from ±4.5VDC. The control lines are parallelled
+> and resistively tied to Vss via 1MΩ. The switch shorts the Control lines to
+> Vdd via a low-value series resistor like 20KΩ. The control line should have a
+> 0.01µF cap to Ground to de-bounce the switch.
+>
+> Power bypass to Ground near the IC's can be a pair of 4.7µF/25V caps at each
+> end of the power rails on the new board.
+>
+> The piezos are out-of-phase on the transducer plate, so they're effectively
+> in-phase when the switch is closed to create the inverter function.
+>
+> FYI, the 100pF capacitors have no audible effect. Their presence is only
+> required for preventing oscillation & HF interference.
+>
+> The equivalent capacitance of each piezo element is 1700 pF, so I used 1.5nF
+> & 220pF in my model to approximate that value. In practice one might want to
+> select 1.8nF capacitors with a 1.7 nF ±50pF value and they should all be
+> about the same value to maintain good string balance and uniform polar
+> characteristics.
+>
+> Always check the capacitance of the caps you're installing because the actual
+> value is typically less than the nominal value. Resistors in the inverter
+> portion of the circuit should be ±1% tolerance and there's usually no need to
+> test those, although better safe than sorry when prototyping.
+>
+> The DIN-8S connection has no built-in switching function. The socket contacts
+> are fork-type which accept a pin.
+>
+> Shrinking the board is a good idea.
+>
+> Manual assembly isn't difficult if you're using 0805 passives and SOIC
+> packages. Just ease-off on the soldering temperature.
+>
+> Whenever you need to pass 2 lines side-by-side between a component's
+> terminals, you can use a 1206 size component and that way you can eliminate a
+> lot of vias and layers while keeping the layout simple & compact.
+>
+> It's also OK to use through-hole jumpers (wire-wrap AWG #30 wire) when a long
+> jump is a pain in the ass layout-wise. The operating frequencies are so low
+> that any resulting inductance is negligible as long as the printed power rails
+> have bypass caps. When prototyping you have options that would be avoided in
+> mass-production in order to minimize labor.
+
+---
+
 ## Next steps, in order
 
 1. **Wait for RMC on the rails.** Do not start the rework — this is the second
