@@ -3,6 +3,39 @@
 Written 2026-07-30, mid-rework, as a hand-off. Read this before running
 anything in `electronics/`.
 
+## Starting a fresh session
+
+The rework is meant to begin in a new session briefed by this document. Paste
+the following, with RMC's answers filled in:
+
+> Read `electronics/STATE.md` before doing anything else. It is a hand-off
+> document for a PCB redesign that was paused waiting on the manufacturer, and
+> it carries the decisions, the measured findings, and the traps.
+>
+> RMC have now answered the four open questions:
+>
+> [PASTE RMC'S REPLY HERE]
+>
+> Work through what those answers change, then **plan the rework before
+> editing anything**.
+>
+> Three things from STATE.md that are easy to miss and expensive to get wrong:
+>
+> - **`main` holds the *original* 88 × 112 mm board.** The generators there
+>   are the starting point, not the redesign.
+> - **The abandoned ±9 V charge-pump attempt is on `supply-charge-pump`.** Take
+>   `RMC-QUESTIONS.md`, `ENCLOSURE.md` and the `verify.py` `NO_CONNECT` change
+>   from it. Rework the generators from `main`, *not* from that branch — its
+>   `design.py` looks like a head start and isn't.
+> - **`electronics/` is a circuit-agnostic KiCad toolchain plus a
+>   circuit-specific layer.** Keep the toolchain verbatim, rewrite the circuit
+>   layer. STATE.md says exactly where the line falls and why.
+>
+> If the Poly-Drive rails come back at ±4.5 V, stop and flag it rather than
+> designing around it. That is the headroom question this project has already
+> been round twice, and with power coming from the DIN there is no battery
+> left as a fallback.
+
 ## Status in one line
 
 **Blocked, waiting on RMC.** Four questions were sent on 2026-07-30 (below).
