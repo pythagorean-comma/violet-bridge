@@ -41,7 +41,7 @@ def channel_block(sch, index, origin):
         return sch.power("power:GNDA", *at(x, y), value="AGND")
 
     # -- input connector ------------------------------------------------
-    j = sch.place(f"J{n}", "Connector_Generic:Conn_01x03", "PZT",
+    j = sch.place(f"J{n}", "Connector_Generic:Conn_01x03", circuit.PARTS[f"J{n}"].value,
                   *at(0, Y_MAIN), footprint=circuit.build_footprint(f"J{n}"),
                   angle=180)
     sch.wire(j.pin(1), at(5.08, 8.89))
@@ -67,7 +67,7 @@ def channel_block(sch, index, origin):
     ground(40.64, 16.51)
 
     # -- unity-gain buffer ----------------------------------------------
-    buf = sch.place(f"U{n}", "rmc:OPA2191", "OPA2191", *at(55.88, 5.08),
+    buf = sch.place(f"U{n}", "rmc:OPA2191", circuit.PARTS["U7"].value, *at(55.88, 5.08),
                     footprint=circuit.build_footprint(f"U{n}"), unit=1,
                     extra={"datasheet": circuit.OPAMP_DATASHEET})
     sch.wire(at(40.64, Y_MAIN), buf.pin(3))
@@ -89,7 +89,7 @@ def channel_block(sch, index, origin):
     sch.wire(at(68.58, Y_APP), r_lag.pin(1))
     sch.wire(r_lag.pin(2), at(101.6, Y_APP))
 
-    allpass = sch.place(f"U{n}", "rmc:OPA2191", "OPA2191", *at(116.84, Y_BUFFB),
+    allpass = sch.place(f"U{n}", "rmc:OPA2191", circuit.PARTS["U7"].value, *at(116.84, Y_BUFFB),
                         footprint=circuit.build_footprint(f"U{n}"), unit=2,
                         mirror="x", extra={"datasheet": circuit.OPAMP_DATASHEET})
     # Inverting input column, running up to the feedback pair.
@@ -125,7 +125,7 @@ def channel_block(sch, index, origin):
     sch.wire(at(157.48, Y_OUT), at(157.48, Y_FBC))
 
     # -- supply pins and decoupling --------------------------------------
-    supply = sch.place(f"U{n}", "rmc:OPA2191", "OPA2191", *at(190.5, Y_BUFFB),
+    supply = sch.place(f"U{n}", "rmc:OPA2191", circuit.PARTS["U7"].value, *at(190.5, Y_BUFFB),
                        footprint=circuit.build_footprint(f"U{n}"), unit=3,
                        extra={"datasheet": circuit.OPAMP_DATASHEET})
     sch.wire(at(182.88, 5.08), supply.pin(8))
@@ -189,7 +189,7 @@ def power_section(sch, origin):
         sch.label(net, ox + x, oy + y, angle=angle)
 
     # -- input chain -----------------------------------------------------
-    j9 = sch.place("J9", "Connector_Generic:Conn_01x02", "12V DC", *at(0, 0),
+    j9 = sch.place("J9", "Connector_Generic:Conn_01x02", circuit.PARTS["J9"].value, *at(0, 0),
                    footprint=circuit.build_footprint("J9"), angle=180)
     sch.wire(j9.pin(2), at(12.7, -2.54))
     rail(12.7, -2.54, "V-", 0)
@@ -224,7 +224,7 @@ def power_section(sch, origin):
     sch.wire(filt.pin(2), at(12.7, 54.61))
     rail(12.7, 54.61, "V-", 270)
 
-    buffer_unit = sch.place("U7", "rmc:OPA2191", "OPA2191", *at(35.56, 45.72),
+    buffer_unit = sch.place("U7", "rmc:OPA2191", circuit.PARTS["U7"].value, *at(35.56, 45.72),
                             footprint=circuit.build_footprint("U7"), unit=1,
                             extra={"datasheet": circuit.OPAMP_DATASHEET})
     sch.wire(filt.pin(1), buffer_unit.pin(3))
@@ -256,7 +256,7 @@ def power_section(sch, origin):
             rail(x, 57.15, "V-", 270)
 
     # -- spare half, parked as a unity buffer -----------------------------
-    spare = sch.place("U7", "rmc:OPA2191", "OPA2191", *at(35.56, 74.93),
+    spare = sch.place("U7", "rmc:OPA2191", circuit.PARTS["U7"].value, *at(35.56, 74.93),
                       footprint=circuit.build_footprint("U7"), unit=2,
                       extra={"datasheet": circuit.OPAMP_DATASHEET})
     sch.wire(spare.pin(5), at(20.32, 72.39), at(20.32, 76.2))
@@ -264,7 +264,7 @@ def power_section(sch, origin):
     sch.wire(spare.pin(6), at(24.13, 77.47), at(24.13, 83.82),
              at(48.26, 83.82), at(48.26, 74.93), spare.pin(7))
 
-    supply = sch.place("U7", "rmc:OPA2191", "OPA2191", *at(74.93, 74.93),
+    supply = sch.place("U7", "rmc:OPA2191", circuit.PARTS["U7"].value, *at(74.93, 74.93),
                        footprint=circuit.build_footprint("U7"), unit=3,
                        extra={"datasheet": circuit.OPAMP_DATASHEET})
     sch.wire(supply.pin(8), at(74.93, 63.5))
@@ -307,7 +307,7 @@ def switch_section(sch, origin):
     for ref, unit, pin_a, pin_b, ctrl, net, mirror in placements:
         x = columns[ref]
         y = (unit - 1) * 27.94
-        part = sch.place(ref, "Analog_Switch:CD4066BM", "CD4066B", *at(x, y),
+        part = sch.place(ref, "Analog_Switch:CD4066BM", circuit.PARTS[ref].value, *at(x, y),
                          footprint=circuit.build_footprint(ref), unit=unit,
                          mirror=mirror,
                          extra={"datasheet": circuit.SWITCH_DATASHEET})
@@ -331,7 +331,7 @@ def switch_section(sch, origin):
                                           ("U10", ("C805", "C806")))):
         x = columns[ref]
         y = 118.11
-        supply = sch.place(ref, "Analog_Switch:CD4066BM", "CD4066B", *at(x, y),
+        supply = sch.place(ref, "Analog_Switch:CD4066BM", circuit.PARTS[ref].value, *at(x, y),
                            footprint=circuit.build_footprint(ref), unit=5,
                            extra={"datasheet": circuit.SWITCH_DATASHEET})
         sch.wire(supply.pin(14), at(x, y - 12.7))
@@ -351,7 +351,7 @@ def switch_section(sch, origin):
         sch.power("power:GNDA", *at(x + 27.94, y), value="AGND")
 
     # -- toggle input ------------------------------------------------------
-    j8 = sch.place("J8", "Connector_Generic:Conn_01x02", "PIZZ/ARCO",
+    j8 = sch.place("J8", "Connector_Generic:Conn_01x02", circuit.PARTS["J8"].value,
                    *at(55.88, 149.86), footprint=circuit.build_footprint("J8"),
                    angle=180)
     sch.wire(j8.pin(1), at(71.12, 149.86))
@@ -378,7 +378,7 @@ def output_section(sch, origin):
     def at(x, y):
         return (ox + x, oy + y)
 
-    j7 = sch.place("J7", "Connector_Generic:Conn_01x08", "DIN-8", *at(0, 0),
+    j7 = sch.place("J7", "Connector_Generic:Conn_01x08", circuit.PARTS["J7"].value, *at(0, 0),
                    footprint=circuit.build_footprint("J7"), angle=180)
     for index in range(1, circuit.CHANNELS + 1):
         pin = j7.pin(index)
@@ -391,7 +391,7 @@ def output_section(sch, origin):
     sch.power("power:GNDA", ground_pin[0] + 10.16, ground_pin[1] + 6.35, value="AGND")
 
     reserved = j7.pin(8)
-    jumper = sch.place("JP1", "Jumper:SolderJumper_2_Open", "DNP",
+    jumper = sch.place("JP1", "Jumper:SolderJumper_2_Open", circuit.PARTS["JP1"].value,
                        reserved[0] + 20.32, reserved[1],
                        footprint=circuit.build_footprint("JP1"), angle=90,
                        extra={"dnp": True})

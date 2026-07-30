@@ -247,9 +247,9 @@ def power(design):
     Because the supply floats, this costs nothing and no coupling capacitors
     are needed anywhere in the signal path.
     """
-    design.add(Part("J9", "12V DC", "Connector_Generic:Conn_01x02",
+    design.add(Part("J9", "9-15V DC", "Connector_Generic:Conn_01x02",
                     "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
-                    description="Floating 12 V in: 1=+, 2=-"))
+                    description="Floating 9-15 V in: 1=+, 2=-"))
     design.connect("VIN", ("J9", 1))
     design.connect("V-", ("J9", 2))
 
@@ -276,8 +276,13 @@ def power(design):
     _capacitor(design, "C704", "100n", "V+", "V-", "Supply bypass")
 
     # Mid-rail reference, buffered.
-    _resistor(design, "R702", "10k", "V+", "MIDREF", "Mid-rail divider")
-    _resistor(design, "R703", "10k", "MIDREF", "V-", "Mid-rail divider")
+    # 100k rather than 10k: the divider is a continuous drain, and 450 uA of a
+    # 2.5 mA budget is worth reclaiming when the source is an onboard battery.
+    # The buffer's 20 pA bias current makes 50k of source impedance cost about
+    # a microvolt, and C705 still filters the reference -- its corner simply
+    # moves from 3 Hz to 0.3 Hz. The cost is a ~2 s settle at power-on.
+    _resistor(design, "R702", "100k", "V+", "MIDREF", "Mid-rail divider")
+    _resistor(design, "R703", "100k", "MIDREF", "V-", "Mid-rail divider")
     _capacitor(design, "C705", "10u", "MIDREF", "V-", "Reference filter")
 
     design.add(Part("U7", "OPA2191", "rmc:OPA2191", OPAMP_FP, units=3,

@@ -7,13 +7,11 @@ CD4066BE). Second, report where each pin's connection point sits, so wires can
 be drawn to real coordinates instead of guessed ones.
 """
 
-import pathlib
-
+import kicad
 from sexp import Sym, find, find_all, parse
 
-KICAD_SHARE = pathlib.Path.home() / "Applications/KiCad/KiCad.app/Contents/SharedSupport"
-SYMBOL_DIR = KICAD_SHARE / "symbols"
-FOOTPRINT_DIR = KICAD_SHARE / "footprints"
+SYMBOL_DIR = kicad.SYMBOL_DIR
+FOOTPRINT_DIR = kicad.FOOTPRINT_DIR
 
 _library_cache = {}
 

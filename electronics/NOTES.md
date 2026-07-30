@@ -59,16 +59,42 @@ bipolar ground, so:
 
 ## Supply requirement — important
 
-**The 12 V input must float** (no connection to mains earth). Its mid-point
-becomes the audio ground, so an earth-referenced supply would short the
-mid-rail buffer.
+**9–15 V DC, and it must float** (no connection to mains earth). Floating is
+the constraint that actually matters: the mid-rail buffer makes signal ground
+half the supply, so an earth-referenced source would short it. A battery is
+inherently isolated, so an onboard pack satisfies this for free — it is a
+better source here than a wallwart, not a worse one.
 
-**Use a regulated 12 V supply.** The CD4066B is rated 18 V absolute maximum.
-D702 clamps at 15 V and F701 will then trip, but an unregulated "12 V" wallwart
-that sits at 17–18 V off-load is outside the design intent.
+RMC's drawing says 12 V, but nothing on the board requires it:
 
-Total draw is about **2.5 mA** — twelve OPA2191 halves at 140 µA each, plus the
-switches and reference. Almost any supply will do.
+| Part | Range |
+| --- | --- |
+| OPA2191 ×7 | 4.5–36 V |
+| CD4066B ×3 | 3–18 V |
+| C701 bulk | 25 V rated |
+| D702 SMAJ15A | 15 V standoff, never conducts in range |
+
+So a **9 V onboard rechargeable pack works as supplied**, with no component
+change. It costs about **2.6 dB** of headroom against 12 V (±4.5 V rails
+rather than ±6 V). Two things make that easier than it sounds: there is no
+gain anywhere in the signal path — the buffer is unity and the all-pass is
+±1 — so the headroom needed is the white element's own peak output, not a
+multiple of it; and **PZT 1 never passes through an op-amp**, running straight
+to the DIN, so it cannot clip whatever the rails are doing. Only the PZT 2
+contribution is at risk. See question 6 below.
+
+**Do not run two packs in series at 18 V.** That is the CD4066B's absolute
+maximum with no margin, and D702 would sit in conduction. It needs a
+higher-voltage switch or an LDO down to 12 V — a respin, not a relabel.
+
+**Do not boost 9 V to 12 V.** A switching converter beside a 3M3-loaded piezo
+front end puts noise in the worst possible place to buy 2.6 dB.
+
+Total draw is about **2.1 mA** — fourteen OPA2191 halves at 140 µA each, plus
+45 µA for the mid-rail divider and a negligible amount for the switches. On a
+9 V pack that is a very long time between charges. R702/R703 are 100k rather
+than the more usual 10k specifically to keep that figure down; the trade is
+that the mid-rail reference takes about 2 s to settle at switch-on.
 
 ## Board
 
@@ -86,6 +112,152 @@ The size is set by six channels of through-hole-headered discrete circuitry.
 If it has to be smaller, say so — reflowing to two columns of three, or moving
 to 0402, would get it well under 70 × 70 mm.
 
+## Installing it
+
+Every pin number below comes from `design.py`, which is the source of truth;
+`verify.py` checks the schematic still agrees with it on each build.
+
+### The signal chain
+
+```
+6 saddles -- each RMC pizz/arco holds TWO piezo elements
+  red --+   white --+   shield --+       3 wires per saddle, 18 in total
+        v           v            v
+   J1..J6:       pin 3        pin 2     pin 1
+        |
+        +-- red -------------------------------------+   never sees an op-amp
+        |                                             |
+        +-- white -> 3M3 bias -> 1k/100p -> buffer -> +-1 --+ via 1.72 nF
+                                     (polarity from J8)     v
+                                                        OUT (1 of 6)
+
+   6 x OUT + audio ground
+        v
+   J7, 8-way --> instrument DIN-8 socket --> RMC cable --> Poly-Drive II
+```
+
+Two things follow from this that are easy to get wrong:
+
+- **The red element never passes through the electronics.** It runs straight
+  from the saddle to the DIN. Only the white one is buffered and
+  polarity-switched, then summed back into the red through 1.72 nF.
+- **The board applies no gain, and its output is still piezo-like** -- high
+  impedance, with no load resistor on board. That is deliberate: it is what
+  the Poly-Drive II expects to see, and the Poly-Drive supplies the load.
+  The board exists to do the two-element mix, which the Poly-Drive cannot,
+  because it has only one input per string.
+
+### Connectors
+
+| | Pin 1 | Pin 2 | Pin 3 | |
+| --- | --- | --- | --- | --- |
+| **J1–J6** saddle 1–6 | shield | white | red | |
+| **J7** to DIN-8 | pins 1–6 = channels 1–6 | 7 = audio ground | 8 = reserved | see question 2 |
+| **J8** pizz/arco toggle | switch | + rail | | DC only, no audio |
+| **J9** battery | + | − | | 9–15 V, floating |
+
+Switch **closed** grounds the all-pass and inverts PZT 2 relative to PZT 1.
+Which of those is "pizz" and which "arco" is question 3 for RMC.
+
+### Grounding — read before wiring
+
+> **The audio ground is the mid-rail, not the battery negative.**
+>
+> The saddle shields (J1–J6 pin 1) and DIN pin 7 sit at *half the supply* —
+> about +4.5 V above the battery's negative terminal on a 9 V pack.
+>
+> **Do not bond battery negative to the shields, to DIN ground, or to any
+> instrument earth.** That shorts U7A's output through R704 (10 Ω), demanding
+> roughly 450 mA. The mid-rail collapses and the board stops working
+> correctly — a baffling fault if you are not expecting it.
+
+Put positively: the Poly-Drive's ground, arriving over the DIN cable, is what
+anchors the board's audio ground, and the battery floats on top of it. That is
+the whole reason the supply has to be isolated — and why a battery suits this
+better than a wallwart, being isolated by construction.
+
+The toggle on J8 carries DC only, so its wiring is uncritical; just keep its
+terminals clear of anything grounded.
+
+### Switching it off
+
+**There is no power switch on the board.** J9 runs straight through F701 and
+D701 to the rails, so the board is live whenever a battery is connected —
+played or not.
+
+At about **2.1 mA**, a typical 500 mAh 9 V pack is flat in roughly **ten
+days** of being left connected. Something has to break that circuit:
+
+- a switch in the battery lead — simplest, and it can be anywhere convenient;
+- a switched socket, if RMC offer one for the DIN-8 (worth asking alongside
+  the pinout question);
+- or unplugging the pack, which works but relies on remembering.
+
+Guitars normally get this for free from a TRS output jack whose ring contact
+breaks the battery when the lead is pulled. A DIN socket does not do that, so
+it is a decision to make while the instrument is open. No board change is
+involved either way.
+
+### If the battery goes flat
+
+The instrument does **not** go silent. The red element of each saddle reaches
+the DIN through copper alone — no op-amp, no analog switch, nothing in series
+— and its return runs shield → J pin 1 → ground plane → DIN pin 7, equally
+passive. That loop survives a dead battery intact.
+
+What is lost:
+
+- **The white element entirely**, since its buffer is dead. You hear the red
+  element alone, and the pizz/arco switch does nothing.
+- **Some level on the red element too.** With the op-amp unpowered its output
+  no longer drives `C04 ‖ C05`; those 1.72 nF stop being a source and become a
+  shunt load across the output. The red element then works into that extra
+  capacitance and loses level by the divider against its own — how much
+  depends on the element capacitance, question 5.
+
+So the signature to recognise is **suddenly thinner and quieter, with the
+pizz/arco switch having no effect**.
+
+The brown-out on the way down is less pleasant than the flat state. The
+OPA2191 needs 4.5 V and is undefined below it, so expect noise and distortion
+rather than a clean fade — a protected pack that cuts off abruptly is kinder
+here than an alkaline sagging through a concert.
+
+### Alternative: an outboard enclosure
+
+Housing the board and battery in an external pedal was considered and not
+taken. Recorded here because the reasoning is not obvious.
+
+**A footswitch, however, is free today.** J8 carries DC control only — the
+CD4066 keeps the toggle out of the signal path entirely — so the pizz/arco
+switch can sit on an arbitrarily long two-conductor cable in a footswitch box
+with no audio penalty at all, and the audio stays in the instrument. It will
+be click-free: the switched node carries no DC, and R701/C703 already slow the
+transition to about 10 ms. If hands-free switching is what is wanted, this is
+the whole answer.
+
+Moving the *board* out is harder:
+
+- **Conductor count is the blocker.** The instrument currently sends six
+  signals plus ground — each one a saddle's two elements already combined —
+  which is exactly what the 8-pin DIN carries, and that only works because the
+  combining happens at the bridge. Outboard, the raw elements have to travel:
+  2 per saddle × 6 = **12**, plus ground. A 13-pin DIN (the Roland GK
+  connector) fits exactly, but it is a different socket and cable, and the
+  chain becomes instrument → 13-pin → pedal → 8-pin → Poly-Drive.
+- **It relocates the highest-impedance node in the design.** The white
+  element's 3M3 load and its buffer would move to the far end of that cable.
+  Cable capacitance forms a divider against the element — how much loss
+  depends on the element's own capacitance, which is question 5 — and twelve
+  high-impedance lines sharing a multicore risk crosstalk, which attacks
+  precisely the per-string separation a hex system exists to provide. Roland
+  GK cables work because the GK pickup buffers *at the instrument*, for this
+  reason.
+- **Pedal power is not automatically isolated.** Daisy-chain supplies share a
+  sleeve usually tied to audio ground, which would short the mid-rail buffer.
+  A battery or a genuinely isolated output only — or a charge-pump respin for
+  a true ±9 V ground, which would also recover the headroom lost at 9 V.
+
 ## Status
 
 - Schematic: **ERC clean.** The 18 remaining warnings are all one benign case
@@ -97,10 +269,11 @@ to 0402, would get it well under 70 × 70 mm.
 
 ## Opening it in KiCad
 
-KiCad lives at **`~/Applications/KiCad/KiCad.app`**, not `/Applications` — the
-Homebrew cask install wanted a sudo password it had no terminal to prompt for,
-so the app bundle was copied into the user Applications folder instead. It is
-a complete KiCad 10.0.5.
+Needs **KiCad 10.x** — see the Requirements section in the top-level
+`README.md`, including the `KICAD_APP` override if yours is installed
+somewhere unusual. On this machine it sits in `~/Applications/KiCad`, not
+`/Applications`, because the Homebrew cask install wanted a sudo password it
+had no terminal to prompt for.
 
 Open **`rmc-pizz-arco/rmc-pizz-arco.kicad_pro`**. Schematic and board both
 open, cross-probing works (clicking a symbol highlights its footprint), and
@@ -151,6 +324,11 @@ assembly rather than a bare board, send `fab/rmc-pizz-arco-bom.csv` and
    by 3M3 and the element's own capacitance. For the bottom string of a gamba
    (D2, 73 Hz) this wants the element to be comfortably over 1 nF. Presumably
    fine, but worth confirming for the low strings.
+6. **Peak open-circuit output of the elements?** This decides whether ±4.5 V
+   rails — a 9 V onboard pack — are comfortable or marginal. The board has no
+   gain, so the requirement is simply the element's own peak. We have assumed
+   well under 4 V peak on a hard pizzicato. If it is higher, the board wants
+   12 V rather than 9 V.
 
 ## Regenerating
 

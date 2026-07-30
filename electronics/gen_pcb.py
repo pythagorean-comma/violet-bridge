@@ -22,11 +22,12 @@ import pcbnew
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import design as circuit  # noqa: E402
+import kicad  # noqa: E402
 # The schematic writer's UUID helper, so the board derives exactly the same
 # symbol identifiers the schematic wrote rather than re-implementing the hash.
 from kisch import _uuid as symbol_uuid  # noqa: E402
 
-FOOTPRINT_DIR = pathlib.Path.home() / "Applications/KiCad/KiCad.app/Contents/SharedSupport/footprints"
+FOOTPRINT_DIR = kicad.FOOTPRINT_DIR
 
 TRACK = 0.25
 POWER_TRACK = 0.5
@@ -559,7 +560,8 @@ def silkscreen(board, rectangle):
     # PCB_TEXT is centred on its position, so titles sit at mid-span.
     middle = (left + right) / 2
     board.text("RMC pizz/arco  6 channel  rev A", middle, top + 1.8, size=1.4)
-    board.text("12 V DC FLOATING SUPPLY ONLY", middle, bottom - 1.8, size=1.2)
+    # "FLOATING" is the part that breaks things if ignored, so it stays first.
+    board.text("FLOATING SUPPLY ONLY   9-15V DC", middle, bottom - 1.8, size=1.2)
     for index in range(1, circuit.CHANNELS + 1):
         _, oy = tile_origin(index)
         board.text(f"CH{index} G/W/R", TILE_ORIGIN[0] + 6.0, oy - 1.4, size=0.9)

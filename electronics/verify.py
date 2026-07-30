@@ -11,9 +11,10 @@ import subprocess
 import sys
 
 import design as circuit
+import kicad
 import sexp
 
-KICAD_CLI = pathlib.Path.home() / "Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli"
+KICAD_CLI = kicad.KICAD_CLI
 
 
 def export_netlist(schematic, destination):
@@ -88,8 +89,15 @@ def _reference(node):
     return None
 
 
+def _property(node, name):
+    for prop in sexp.find_all(node, "property"):
+        if prop[1] == name:
+            return prop[2]
+    return None
+
+
 def read_schematic_symbols(path):
-    """reference -> uuid, for the first unit of each placed symbol.
+    """reference -> (uuid, value), for the first unit of each placed symbol.
 
     Only direct children of the sheet are instances; the definitions inside
     lib_symbols are nested one level deeper and are skipped for free.
@@ -103,7 +111,7 @@ def read_schematic_symbols(path):
         if unit is None or uuid_node is None or reference is None:
             continue
         if int(str(unit[1])) == 1 and not reference.startswith("#"):
-            found[reference] = uuid_node[1]
+            found[reference] = (uuid_node[1], _property(symbol, "Value"))
     return found
 
 
@@ -133,13 +141,22 @@ def check_board_linkage(schematic, board):
     footprints = read_board_footprints(board)
     problems = []
 
+    # Values are set in three places -- design.py, the schematic and the BOM
+    # that KiCad derives from it -- so check the drawing still agrees with the
+    # design. A stale literal here is invisible until it reaches a BOM.
+    for reference, (_, value) in sorted(symbols.items()):
+        wanted = circuit.PARTS[reference].value
+        if value != wanted:
+            problems.append(f"{reference}: schematic says {value!r}, "
+                            f"design.py says {wanted!r}")
+
     for reference, (path, identifier) in sorted(footprints.items()):
         expected = symbols.get(reference)
         if expected is None:
             problems.append(f"{reference}: on the board but not the schematic")
-        elif path != f"/{expected}":
+        elif path != f"/{expected[0]}":
             problems.append(f"{reference}: path {path} does not match "
-                            f"schematic symbol /{expected}")
+                            f"schematic symbol /{expected[0]}")
         if ":" not in identifier:
             problems.append(f"{reference}: footprint {identifier!r} has no library")
 

@@ -1,1 +1,7 @@
+# Python packages for the bridge geometry (bridge.py, bridge_body.py,
+# assembly.py). Needs Python 3.10-3.12.
+#
+# This file does NOT cover electronics/. Those generators import only the
+# standard library, but they drive KiCad 10.x -- a separate install, not
+# available from pip. See the Requirements section in README.md.
 cadquery==2.8.0

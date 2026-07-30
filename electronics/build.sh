@@ -7,13 +7,27 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-KICAD_APP="$HOME/Applications/KiCad/KiCad.app"
-KICAD_PY="$KICAD_APP/Contents/Frameworks/Python.framework/Versions/3.9/bin/python3"
-KICAD_CLI="$KICAD_APP/Contents/MacOS/kicad-cli"
 VENV_PY="../.venv/bin/python"
 
-export KICAD10_SYMBOL_DIR="$KICAD_APP/Contents/SharedSupport/symbols"
-export KICAD10_FOOTPRINT_DIR="$KICAD_APP/Contents/SharedSupport/footprints"
+# Where KiCad lives is decided in one place, by kicad.py. Set KICAD_APP to
+# override. Doing the lookup up front means a missing install is reported
+# before anything is generated, with instructions rather than a path error.
+if ! "$VENV_PY" kicad.py >/dev/null 2>&1; then
+    "$VENV_PY" kicad.py || true
+    exit 1
+fi
+KICAD_PY="$("$VENV_PY" kicad.py python)"
+KICAD_CLI="$("$VENV_PY" kicad.py cli)"
+export KICAD10_SYMBOL_DIR="$("$VENV_PY" kicad.py symbols)"
+export KICAD10_FOOTPRINT_DIR="$("$VENV_PY" kicad.py footprints)"
+"$VENV_PY" -c 'import kicad,sys; w=kicad.check_version(); w and sys.stderr.write(w+"\n")'
+
+if [ -z "$KICAD_PY" ]; then
+    echo "This KiCad has no bundled Python, so pcbnew is not available to" >&2
+    echo "gen_pcb.py. On Linux, install the system python3-pcbnew package" >&2
+    echo "and run gen_pcb.py with the interpreter that provides it." >&2
+    exit 1
+fi
 
 PROJECT=rmc-pizz-arco/rmc-pizz-arco
 mkdir -p build fab
