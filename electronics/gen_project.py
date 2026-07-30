@@ -16,7 +16,7 @@ import symlib
 from kisch import Schematic, _uuid
 from sexp import Sym, dumps
 
-PROJECT = "rmc-pizz-arco"
+PROJECT = circuit.PROJECT
 
 # 2-layer, 1 oz copper, comfortably inside every low-cost fab's capability
 # (JLCPCB and PCBWay both accept 0.127 mm; this leaves a wide margin).

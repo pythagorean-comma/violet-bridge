@@ -402,7 +402,7 @@ def output_section(sch, origin):
 
 
 def build(path):
-    sch = Schematic("rmc-pizz-arco",
+    sch = Schematic(circuit.PROJECT,
                     title="RMC pizz/arco phase switching -- 6 channel",
                     rev="A", company="violet-bridge",
                     date="2026-07-29", paper="A2")

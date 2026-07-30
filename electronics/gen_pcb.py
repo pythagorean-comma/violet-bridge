@@ -22,6 +22,9 @@ import pcbnew
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import design as circuit  # noqa: E402
+# The schematic writer's UUID helper, so the board derives exactly the same
+# symbol identifiers the schematic wrote rather than re-implementing the hash.
+from kisch import _uuid as symbol_uuid  # noqa: E402
 
 FOOTPRINT_DIR = pathlib.Path.home() / "Applications/KiCad/KiCad.app/Contents/SharedSupport/footprints"
 
@@ -139,6 +142,19 @@ class Board:
         if footprint is None:
             raise SystemExit(f"could not load footprint {part.footprint} for {ref}")
         self.board.Add(footprint)
+        # FootprintLoad returns the footprint under its bare name; without the
+        # library nickname KiCad cannot tie it back to a library, so
+        # "Update Footprints from Library" has nothing to work from.
+        footprint.SetFPIDAsString(part.footprint)
+        # Link back to the schematic symbol of the same reference. The UUIDs
+        # are derived from the project name, so both generators compute the
+        # same value independently -- this is what makes cross-probing work
+        # and stops "Update PCB from Schematic" treating every footprint as
+        # a new part. Multi-unit parts link via their first unit.
+        footprint.SetPath(pcbnew.KIID_PATH(
+            f"/{symbol_uuid(f'{circuit.PROJECT}:part:{ref}:1')}"))
+        footprint.SetSheetname("/")
+        footprint.SetSheetfile(f"{circuit.PROJECT}.kicad_sch")
         footprint.SetPosition(point(x, y))
         if rotation:
             footprint.SetOrientationDegrees(rotation)

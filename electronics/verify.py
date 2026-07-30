@@ -81,6 +81,76 @@ def compare(actual, expected):
     return problems
 
 
+def _reference(node):
+    for prop in sexp.find_all(node, "property"):
+        if prop[1] == "Reference":
+            return prop[2]
+    return None
+
+
+def read_schematic_symbols(path):
+    """reference -> uuid, for the first unit of each placed symbol.
+
+    Only direct children of the sheet are instances; the definitions inside
+    lib_symbols are nested one level deeper and are skipped for free.
+    """
+    tree = sexp.parse(path.read_text())
+    found = {}
+    for symbol in sexp.find_all(tree, "symbol"):
+        unit = sexp.find(symbol, "unit")
+        uuid_node = sexp.find(symbol, "uuid")
+        reference = _reference(symbol)
+        if unit is None or uuid_node is None or reference is None:
+            continue
+        if int(str(unit[1])) == 1 and not reference.startswith("#"):
+            found[reference] = uuid_node[1]
+    return found
+
+
+def read_board_footprints(path):
+    """reference -> (schematic path, footprint identifier)."""
+    tree = sexp.parse(path.read_text())
+    found = {}
+    for footprint in sexp.find_all(tree, "footprint"):
+        reference = _reference(footprint)
+        if reference is None:
+            continue
+        path_node = sexp.find(footprint, "path")
+        found[reference] = (path_node[1] if path_node else None,
+                            str(footprint[1]))
+    return found
+
+
+def check_board_linkage(schematic, board):
+    """Every footprint must point at its schematic symbol and name its library.
+
+    Without the path KiCad cannot associate the two, so cross-probing dies and
+    'Update PCB from Schematic' offers to add every footprint again as a new
+    part. Without the library prefix it cannot update a footprint from its
+    library. Both are silent -- nothing else in the build would notice.
+    """
+    symbols = read_schematic_symbols(schematic)
+    footprints = read_board_footprints(board)
+    problems = []
+
+    for reference, (path, identifier) in sorted(footprints.items()):
+        expected = symbols.get(reference)
+        if expected is None:
+            problems.append(f"{reference}: on the board but not the schematic")
+        elif path != f"/{expected}":
+            problems.append(f"{reference}: path {path} does not match "
+                            f"schematic symbol /{expected}")
+        if ":" not in identifier:
+            problems.append(f"{reference}: footprint {identifier!r} has no library")
+
+    for reference in sorted(set(symbols) - set(footprints)):
+        if not circuit.PARTS[reference].footprint:
+            continue        # power flags are schematic-only, by design
+        problems.append(f"{reference}: in the schematic but not on the board")
+
+    return problems, len(footprints)
+
+
 def main():
     here = pathlib.Path(__file__).parent
     schematic = here / "rmc-pizz-arco" / "rmc-pizz-arco.kicad_sch"
@@ -103,6 +173,18 @@ def main():
 
     print(f"schematic matches design.py: {len(expected)} nets, "
           f"{sum(len(v) for v in expected.values())} pin connections")
+
+    board = here / circuit.PROJECT / f"{circuit.PROJECT}.kicad_pcb"
+    if not board.exists():
+        print("board not generated yet; skipping linkage check")
+        return 0
+    problems, count = check_board_linkage(schematic, board)
+    if problems:
+        print(f"{len(problems)} board linkage problem(s):")
+        for problem in problems[:20]:
+            print(f"  - {problem}")
+        return 1
+    print(f"board linked to schematic: {count} footprints")
     return 0
 
 

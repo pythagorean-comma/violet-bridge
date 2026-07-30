@@ -95,6 +95,23 @@ to 0402, would get it well under 70 × 70 mm.
   `verify.py`.
 - Board: **fully routed, 0 unconnected items, DRC clean.**
 
+## Opening it in KiCad
+
+KiCad lives at **`~/Applications/KiCad/KiCad.app`**, not `/Applications` — the
+Homebrew cask install wanted a sudo password it had no terminal to prompt for,
+so the app bundle was copied into the user Applications folder instead. It is
+a complete KiCad 10.0.5.
+
+Open **`rmc-pizz-arco/rmc-pizz-arco.kicad_pro`**. Schematic and board both
+open, cross-probing works (clicking a symbol highlights its footprint), and
+*Update PCB from Schematic* reports no changes — the generated board carries
+the schematic symbol paths that make all of that work.
+
+> **`build.sh` regenerates the schematic and the board from scratch, so
+> anything changed in the GUI is destroyed on the next build.** `design.py` is
+> the source of truth. Use the editor to inspect, measure and try things out;
+> changes that should survive belong in the generator.
+
 ## Sending it to a fab
 
 `./build.sh` writes **`fab/rmc-pizz-arco-pcbway.zip`** — upload that and

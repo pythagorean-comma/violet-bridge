@@ -24,6 +24,12 @@ here and flagged in NOTES.md.
 
 CHANNELS = 6
 
+# Shared by the schematic, the board and the project scaffolding. The
+# schematic's symbol UUIDs are derived from this name, and the board's
+# footprints are linked back to those UUIDs, so the two generators must agree
+# on it exactly -- hence one constant rather than three string literals.
+PROJECT = "rmc-pizz-arco"
+
 # Library registry: lib_id -> (nickname, stock library, symbol, rename).
 # OPA2191 is not in the stock libraries; OPA2197xD is the same SOIC-8 dual
 # from the same TI family, so it supplies the body and we rename it.

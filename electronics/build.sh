@@ -22,11 +22,13 @@ echo "== schematic and project =="
 "$VENV_PY" gen_sch.py
 "$VENV_PY" gen_project.py
 
-echo "== checking the drawing against design.py =="
-"$VENV_PY" verify.py
-
 echo "== board =="
 "$KICAD_PY" gen_pcb.py 2>&1 | grep -v "assert" || true
+
+# After the board, not before: this checks the drawing against design.py and
+# the board's footprint linkage against the drawing, so both must be current.
+echo "== checking the drawing and the board against design.py =="
+"$VENV_PY" verify.py
 
 echo "== ERC / DRC =="
 "$KICAD_CLI" sch erc --severity-error --severity-warning -o build/erc.rpt "$PROJECT.kicad_sch" | tail -1
