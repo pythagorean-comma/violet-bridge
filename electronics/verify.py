@@ -129,6 +129,22 @@ def read_board_footprints(path):
     return found
 
 
+def check_supply_annotations(schematic, board):
+    """The supply range must appear on both the sheet and the silkscreen.
+
+    Both are generated from design.SUPPLY_RANGE, so they cannot drift on their
+    own -- but the schematic PDF is what gets sent to RMC, and a stale figure
+    there once survived a re-spec unnoticed. This catches the other direction:
+    an annotation edited by hand, leaving the constant behind.
+    """
+    problems = []
+    for name, path in (("schematic", schematic), ("board", board)):
+        if circuit.SUPPLY_RANGE not in path.read_text():
+            problems.append(f"{name} does not state the supply range "
+                            f"{circuit.SUPPLY_RANGE!r}")
+    return problems
+
+
 def check_board_linkage(schematic, board):
     """Every footprint must point at its schematic symbol and name its library.
 
@@ -196,6 +212,7 @@ def main():
         print("board not generated yet; skipping linkage check")
         return 0
     problems, count = check_board_linkage(schematic, board)
+    problems += check_supply_annotations(schematic, board)
     if problems:
         print(f"{len(problems)} board linkage problem(s):")
         for problem in problems[:20]:

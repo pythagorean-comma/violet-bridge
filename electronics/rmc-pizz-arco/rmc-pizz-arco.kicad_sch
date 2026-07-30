@@ -9408,25 +9408,35 @@
 		)
 		(uuid "a521c6f1-a6c4-57da-acd7-864544221ef6")
 	)
-	(text "Signal ground (GNDA) is mid-supply: the 12 V input must float."
-		(at 300 150 0)
+	(text "SUPPLY: 9-15V DC, and it MUST float -- signal ground (GNDA) sits at mid-supply."
+		(at 300 148 0)
 		(effects
 			(font
 				(size 2 2)
 			)
 			(justify left)
 		)
-		(uuid "7d9e0609-de53-5227-b0dd-b70bd468de3f")
+		(uuid "40cb3d9a-ac02-5bb6-8298-e2fdcc16756e")
+	)
+	(text "Intended source: 9V onboard floating battery pack, approx 2.1mA."
+		(at 300 153 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left)
+		)
+		(uuid "f10c97d5-983f-557a-bdfa-97327df22bd2")
 	)
 	(text "Switch closed = all-pass grounded = inverted (-1)."
-		(at 300 155 0)
+		(at 300 158 0)
 		(effects
 			(font
 				(size 2 2)
 			)
 			(justify left)
 		)
-		(uuid "6d406ca3-ad49-5d2f-8b0d-e1ef1a625d37")
+		(uuid "d612eade-9196-5224-9c52-c207189d48e9")
 	)
 	(symbol
 		(lib_id "Connector_Generic:Conn_01x03")

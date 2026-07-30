@@ -59,6 +59,10 @@ bipolar ground, so:
 
 ## Supply requirement — important
 
+> **Chosen arrangement: a 9 V onboard rechargeable pack, inside the
+> instrument.** RMC's drawing specifies a 12 V wallwart; the board accepts
+> either, and the reasoning for taking the battery is below.
+
 **9–15 V DC, and it must float** (no connection to mains earth). Floating is
 the constraint that actually matters: the mid-rail buffer makes signal ground
 half the supply, so an earth-referenced source would short it. A battery is
@@ -311,24 +315,44 @@ assembly rather than a bare board, send `fab/rmc-pizz-arco-bom.csv` and
 
 ## Questions for RMC
 
+**What we are building, so the answers land in the right context:** the board
+is mounted **inside the instrument**, powered by a **9 V onboard rechargeable
+pack** — floating, drawing about **2.1 mA** — with the six channels leaving on
+the DIN-8 to an outboard Poly-Drive II. **Not a wallwart.** Where the drawing
+specifies 12 V we have checked every part and the circuit is happy anywhere in
+9–15 V; 9 V costs about 2.6 dB of headroom, which question 3 is about.
+
 1. **DIN-8 pinout.** J7 is currently 1–6 = channels 1–6, 7 = ground,
    8 = reserved. Please confirm the pin assignment the Poly-Drive II expects.
-2. **DIN pin 8.** Is it used — a ground, a shield, or a supply we could draw
-   from instead of the wallwart? JP1 (unfitted) can tie it to ground.
-3. **Which way round is pizz and which is arco?** The drawing labels the
+2. **DIN pin 8 — is it used?** A ground, a shield, or something else? JP1
+   (unfitted) can tie it to ground if that is what it wants.
+
+   If it carries a **supply**, we could only use it if that supply is
+   *isolated from DIN ground*. Our audio ground is the mid-rail — pin 7 — so a
+   rail referenced to pin 7 would give us a positive supply and no negative
+   one for signals to swing into. Using it would mean adding a negative-rail
+   generator and re-biasing, which is a respin rather than a wiring change.
+   We only need about 2.1 mA, so it is worth asking.
+3. **Element specification: capacitance and peak output.** Two numbers, both
+   from the same part:
+   - **Capacitance**, because it sets the input high-pass corner against the
+     3M3 bias resistor. For the bottom string of a gamba (D2, 73 Hz) we want
+     it comfortably over 1 nF.
+   - **Peak open-circuit output** on a hard pizzicato, because it decides
+     whether ±4.5 V rails from a 9 V pack are comfortable or marginal. The
+     board applies no gain, so the requirement is simply the element's own
+     peak. We have assumed well under 4 V. If it is higher, we should run 12 V
+     instead of 9 V.
+4. **Does the DIN-8S socket have a switching contact?** There is no power
+   switch on the board, so at 2.1 mA a pack left connected is flat in about
+   ten days. A switched socket would break the battery on unplugging, the way
+   a guitar's TRS output jack does. If not, we will fit a switch in the
+   battery lead.
+5. **Which way round is pizz and which is arco?** The drawing labels the
    switch `[Space]`. On this board, switch **closed** = all-pass grounded =
    PZT 2 inverted relative to PZT 1.
-4. **220 pF ‖ 1.5 nF = 1.72 nF.** Is one of these meant to be select-on-test,
+6. **220 pF ‖ 1.5 nF = 1.72 nF.** Is one of these meant to be select-on-test,
    or is the pair simply how the value is made up? Both are fitted as drawn.
-5. **3M3 bias against element capacitance.** The input high-pass corner is set
-   by 3M3 and the element's own capacitance. For the bottom string of a gamba
-   (D2, 73 Hz) this wants the element to be comfortably over 1 nF. Presumably
-   fine, but worth confirming for the low strings.
-6. **Peak open-circuit output of the elements?** This decides whether ±4.5 V
-   rails — a 9 V onboard pack — are comfortable or marginal. The board has no
-   gain, so the requirement is simply the element's own peak. We have assumed
-   well under 4 V peak on a hard pizzicato. If it is higher, the board wants
-   12 V rather than 9 V.
 
 ## Regenerating
 

@@ -418,8 +418,12 @@ def build(path):
     switch_section(sch, SWITCH_ORIGIN)
     output_section(sch, (500.38, 190.5))
 
-    sch.text("Signal ground (GNDA) is mid-supply: the 12 V input must float.", 300.0, 150.0, size=2.0)
-    sch.text("Switch closed = all-pass grounded = inverted (-1).", 300.0, 155.0, size=2.0)
+    # These reach the schematic PDF, which is what gets sent to RMC, so the
+    # supply figures come from design.py rather than being written out again.
+    sch.text(f"SUPPLY: {circuit.SUPPLY_RANGE}, and it MUST float -- signal "
+             f"ground (GNDA) sits at mid-supply.", 300.0, 148.0, size=2.0)
+    sch.text(f"Intended source: {circuit.SUPPLY_INTENT}.", 300.0, 153.0, size=2.0)
+    sch.text("Switch closed = all-pass grounded = inverted (-1).", 300.0, 158.0, size=2.0)
 
     sch.auto_junctions()
     sch.save(path)

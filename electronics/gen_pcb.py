@@ -90,7 +90,7 @@ BOARD_PLACEMENT = {
     "J8":  (80.0, 64.0, 0),                # pizz/arco toggle
     "R701": (74.0, 68.0, 0),
     "C703": (74.0, 72.0, 0),
-    "J9":  (4.0, 100.5, 0),                 # 12 V in, bottom left
+    "J9":  (4.0, 100.5, 0),                 # supply in, bottom left
     "F701": (10.0, 100.5, 0),
     "D701": (16.0, 100.5, 180),             # pin 1 (cathode) faces the rail
     "D702": (22.0, 100.5, 0),
@@ -560,8 +560,10 @@ def silkscreen(board, rectangle):
     # PCB_TEXT is centred on its position, so titles sit at mid-span.
     middle = (left + right) / 2
     board.text("RMC pizz/arco  6 channel  rev A", middle, top + 1.8, size=1.4)
-    # "FLOATING" is the part that breaks things if ignored, so it stays first.
-    board.text("FLOATING SUPPLY ONLY   9-15V DC", middle, bottom - 1.8, size=1.2)
+    # "FLOATING" is the part that breaks things if ignored, so it stays first;
+    # the range itself comes from design.py so it cannot drift from the sheet.
+    board.text(f"FLOATING SUPPLY ONLY   {circuit.SUPPLY_RANGE}",
+               middle, bottom - 1.8, size=1.2)
     for index in range(1, circuit.CHANNELS + 1):
         _, oy = tile_origin(index)
         board.text(f"CH{index} G/W/R", TILE_ORIGIN[0] + 6.0, oy - 1.4, size=0.9)

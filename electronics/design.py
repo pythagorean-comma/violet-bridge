@@ -17,7 +17,7 @@ gives +1, switch closed grounds the non-inverting input and gives -1. The
 all-pass form keeps gain magnitude and source loading identical either way,
 so flipping it produces no level jump.
 
-Everything outside RMC's drawing -- the mid-rail split of the floating 12 V
+Everything outside RMC's drawing -- the mid-rail split of the floating
 supply, the analog switch bank, input protection and decoupling -- is added
 here and flagged in NOTES.md.
 """
@@ -29,6 +29,11 @@ CHANNELS = 6
 # footprints are linked back to those UUIDs, so the two generators must agree
 # on it exactly -- hence one constant rather than three string literals.
 PROJECT = "rmc-pizz-arco"
+
+# The supply spec appears on the connector, the silkscreen and the schematic
+# sheet. It has already drifted once, so it is written here and nowhere else.
+SUPPLY_RANGE = "9-15V DC"
+SUPPLY_INTENT = "9V onboard floating battery pack, approx 2.1mA"
 
 # Library registry: lib_id -> (nickname, stock library, symbol, rename).
 # OPA2191 is not in the stock libraries; OPA2197xD is the same SOIC-8 dual
@@ -240,16 +245,16 @@ def switch_bank(design):
 
 
 def power(design):
-    """Split the floating 12 V into +/-6 V about the audio ground.
+    """Split the floating supply into +/- half of it about the audio ground.
 
     RMC's schematic is drawn around a bipolar ground but specifies a single
-    floating 12 V supply, so signal ground has to sit at half the supply.
+    floating supply, so signal ground has to sit at half of it.
     Because the supply floats, this costs nothing and no coupling capacitors
     are needed anywhere in the signal path.
     """
-    design.add(Part("J9", "9-15V DC", "Connector_Generic:Conn_01x02",
+    design.add(Part("J9", SUPPLY_RANGE, "Connector_Generic:Conn_01x02",
                     "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
-                    description="Floating 9-15 V in: 1=+, 2=-"))
+                    description=f"Floating {SUPPLY_RANGE} in: 1=+, 2=-"))
     design.connect("VIN", ("J9", 1))
     design.connect("V-", ("J9", 2))
 
