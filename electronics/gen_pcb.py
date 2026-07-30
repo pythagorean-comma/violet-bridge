@@ -72,15 +72,20 @@ TILE_EXIT_X = 50.0
 # Board-level placement: ref -> (x, y, rotation).
 BOARD_PLACEMENT = {
     "J7":  (RIGHT_X + 2.0, 2.0, 0),        # DIN-8 out, pins 1..8 downwards
-    "U8":  (RIGHT_X + 8.0, 34.0, 0),
-    "U9":  (RIGHT_X + 8.0, 50.0, 0),
-    "C801": (66.0, 26.0, 0),
-    "C802": (74.0, 26.0, 0),
-    "C901": (66.0, 58.0, 0),
-    "C902": (74.0, 58.0, 0),
-    "J8":  (RIGHT_X + 14.0, 74.0, 0),      # pizz/arco toggle, clear of the lanes
-    "R701": (RIGHT_X + 6.0, 74.0, 0),
-    "C703": (RIGHT_X + 6.0, 78.0, 0),
+    # One switch package per pair of channels, sat beside the pair it serves,
+    # so each switched-node run stays short.
+    "U8":  (70.0, 26.0, 0),
+    "U9":  (70.0, 52.0, 0),
+    "U10": (70.0, 84.0, 0),
+    "C801": (82.0, 22.0, 0),
+    "C802": (82.0, 30.0, 0),
+    "C803": (82.0, 48.0, 0),
+    "C804": (82.0, 56.0, 0),
+    "C805": (82.0, 80.0, 0),
+    "C806": (82.0, 88.0, 0),
+    "J8":  (80.0, 64.0, 0),                # pizz/arco toggle
+    "R701": (74.0, 68.0, 0),
+    "C703": (74.0, 72.0, 0),
     "J9":  (4.0, 100.5, 0),                 # 12 V in, bottom left
     "F701": (10.0, 100.5, 0),
     "D701": (16.0, 100.5, 180),             # pin 1 (cathode) faces the rail
@@ -390,8 +395,8 @@ def route_switched_nodes(board):
     Two of the eight switch cells on a 4066 sit entirely on the far side of
     the package, so those two hop to B.Cu and cross underneath it.
     """
-    targets = {1: ("U8", 1), 2: ("U8", 3), 3: ("U8", 8),
-               4: ("U8", 10), 5: ("U9", 1), 6: ("U9", 3)}
+    targets = {1: ("U8", 1), 2: ("U8", 3), 3: ("U9", 1),
+               4: ("U9", 3), 5: ("U10", 1), 6: ("U10", 3)}
     for index in range(1, circuit.CHANNELS + 1):
         _, oy = tile_origin(index)
         lane = 59.4 + (index - 1) * 0.9
@@ -416,21 +421,35 @@ def route_switched_nodes(board):
 
 def route_switch_control(board):
     """One control line to all six switch cells, run on B.Cu."""
-    spine_x = 85.5
-    controls = [("U8", 13), ("U8", 5), ("U8", 6), ("U8", 12), ("U9", 13), ("U9", 5)]
+    spine_x = 86.5
+    packages = ("U8", "U9", "U10")
     source = board.pad("J8", 1)
-    board.track("SW_CTL", [source, (source[0] + 3.0, source[1]),
-                           (source[0] + 3.0, 84.0), (spine_x, 84.0),
-                           (spine_x, 28.0)], layer=pcbnew.B_Cu)
-    for ref, pin in controls:
+    # The spine has to span every branch off it, including the ones that
+    # come over the top of the first package.
+    board.track("SW_CTL", [source, (spine_x, source[1])], layer=pcbnew.B_Cu)
+    board.track("SW_CTL", [(spine_x, 18.5), (spine_x, 84.0)], layer=pcbnew.B_Cu)
+    for ref, pin in [(ref, pin) for ref in packages for pin in (13, 5)]:
         target = board.pad(ref, pin)
-        landing = (target[0] - 2.4 if target[0] < 70.0 else target[0] + 2.4, target[1])
-        board.track("SW_CTL", [(spine_x, target[1]), landing], layer=pcbnew.B_Cu)
+        if pin == 13:
+            # Right-hand side: straight in from the spine.
+            landing = (target[0] + 2.4, target[1])
+            board.track("SW_CTL", [(spine_x, target[1]), landing], layer=pcbnew.B_Cu)
+        else:
+            # Left-hand side. Coming in level with the pin would run through
+            # this package's own vias, so drop down the outside instead: over
+            # the top of the package, then down a clear column at x = 66.
+            centre = to_mm(board.footprints[ref].GetPosition().y)
+            over = centre - 7.5
+            landing = (66.0, target[1])
+            board.track("SW_CTL", [(spine_x, over), (66.0, over), landing],
+                        layer=pcbnew.B_Cu)
         board.via("SW_CTL", *landing)
         board.track("SW_CTL", [landing, target])
     for ref, pin in (("R701", 1), ("C703", 1)):
         landing = board.stub_via(ref, pin, (-1.5, 0.0))
-        board.track("SW_CTL", [landing, (landing[0], 84.0), (spine_x, 84.0)], layer=pcbnew.B_Cu)
+        # Return above the last package, not across its ground vias.
+        board.track("SW_CTL", [landing, (landing[0], 76.0), (spine_x, 76.0)],
+                    layer=pcbnew.B_Cu)
 
 
 def route_power(board):
@@ -471,21 +490,22 @@ def route_power(board):
 
 def route_right_column(board):
     """Switch-package supplies, decoupling and the DIN header."""
-    for ref, plus, minus in (("U8", 14, 7), ("U9", 14, 7)):
+    for ref, plus, minus in (("U8", 14, 7), ("U9", 14, 7), ("U10", 14, 7)):
         board.stub_via(ref, plus, (0.0, -2.4))
         board.stub_via(ref, minus, (0.0, 2.4))
     # Spare switch cells and the switched-node returns all sit on ground.
-    for ref, pin in (("U8", 2), ("U8", 4), ("U8", 9), ("U8", 11),
-                     ("U9", 2), ("U9", 4), ("U9", 8), ("U9", 9),
-                     ("U9", 10), ("U9", 11)):
+    grounded = [(ref, pin) for ref in ("U8", "U9", "U10")
+                for pin in (2, 4, 8, 9, 10, 11)]
+    for ref, pin in grounded:
         pad = board.pad(ref, pin)
         offset = (2.2, 0.0) if pad[0] > 70.0 else (-2.2, 0.0)
         board.stub_via(ref, pin, offset)
-    for ref, pin in (("U9", 6), ("U9", 12)):
-        board.stub_via(ref, pin, (2.2, 0.0))
-    for ref in ("C801", "C802", "C901", "C902"):
-        board.stub_via(ref, 1, (0.0, -1.7))
-        board.stub_via(ref, 2, (0.0, 1.7))
+    for ref in ("U8", "U9", "U10"):
+        for pin in (6, 12):
+            board.stub_via(ref, pin, (-2.2, 0.0) if pin == 6 else (2.2, 0.0))
+    for ref in ("C801", "C802", "C803", "C804", "C805", "C806"):
+        board.stub_via(ref, 1, (-1.5, 0.0))
+        board.stub_via(ref, 2, (1.5, 0.0))
 
     board.stub_via("J7", 7, (2.5, 0.0))
     board.track("DIN8", [board.pad("J7", 8), board.pad("JP1", 1)])

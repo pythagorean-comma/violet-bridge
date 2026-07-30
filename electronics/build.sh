@@ -31,14 +31,35 @@ echo "== board =="
 echo "== ERC / DRC =="
 "$KICAD_CLI" sch erc --severity-error --severity-warning -o build/erc.rpt "$PROJECT.kicad_sch" | tail -1
 "$KICAD_CLI" pcb drc --severity-error -o build/drc.rpt "$PROJECT.kicad_pcb" | tail -2
+DRC_ERRORS=$(grep -cE '^\[' build/drc.rpt || true)
 
-echo "== fab outputs =="
+echo "== documentation outputs =="
 "$KICAD_CLI" sch export pdf -o fab/rmc-pizz-arco-schematic.pdf "$PROJECT.kicad_sch" >/dev/null
 "$KICAD_CLI" sch export bom --group-by Value,Footprint \
     --fields 'Reference,Value,Footprint,${QUANTITY},Datasheet' \
     -o fab/rmc-pizz-arco-bom.csv "$PROJECT.kicad_sch" >/dev/null
-"$KICAD_CLI" pcb export gerbers -o fab/gerbers/ "$PROJECT.kicad_pcb" >/dev/null
-"$KICAD_CLI" pcb export drill -o fab/gerbers/ "$PROJECT.kicad_pcb" >/dev/null
 "$KICAD_CLI" pcb export pos --format csv --units mm \
     -o fab/rmc-pizz-arco-pos.csv "$PROJECT.kicad_pcb" >/dev/null
-echo "done -- see NOTES.md for outstanding DRC items"
+
+# The set a fab actually gets: copper, mask, silk, outline, drill -- and
+# nothing else. A blanket export also writes Fab, Courtyard and User layers,
+# and F.Fab carries a second closed board outline; if CAM picks that one up
+# instead of Edge.Cuts the board comes back the wrong shape.
+echo "== fab package =="
+if [ "$DRC_ERRORS" -ne 0 ]; then
+    rm -f fab/rmc-pizz-arco-pcbway.zip
+    echo "SKIPPED: $DRC_ERRORS DRC error(s) outstanding -- see build/drc.rpt."
+    echo "No fabrication package is written while the board has known errors."
+    exit 0
+fi
+rm -rf fab/pcbway
+"$KICAD_CLI" pcb export gerbers \
+    --layers F.Cu,In1.Cu,In2.Cu,B.Cu,F.Mask,B.Mask,F.SilkS,B.SilkS,Edge.Cuts \
+    -o fab/pcbway/ "$PROJECT.kicad_pcb" >/dev/null
+# Omitting --excellon-separate-th gives one combined PTH/NPTH file, which is
+# what fabs expect; it is a bare flag, not a key=value.
+"$KICAD_CLI" pcb export drill --format excellon \
+    -o fab/pcbway/ "$PROJECT.kicad_pcb" >/dev/null
+cp fab/ORDER.md fab/pcbway/
+(cd fab/pcbway && zip -q -r ../rmc-pizz-arco-pcbway.zip .)
+echo "wrote fab/rmc-pizz-arco-pcbway.zip -- upload this, and see fab/ORDER.md"

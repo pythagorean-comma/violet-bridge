@@ -188,37 +188,39 @@ def switch_bank(design):
     single mechanical SPST would short them together when open, so each
     channel gets its own contact and one control line drives the lot.
     """
-    # (part, switch pins A/B, control pin) -> channel
-    layout = [
-        ("U8", 1, 2, 13, 1),
-        ("U8", 3, 4, 5, 2),
-        ("U8", 8, 9, 6, 3),
-        ("U8", 10, 11, 12, 4),
-        ("U9", 1, 2, 13, 5),
-        ("U9", 3, 4, 5, 6),
-    ]
-    for ref in ("U8", "U9"):
+    # Three packages carrying two channels each, rather than two packages
+    # carrying four and two. On an SO-14 the A and B cells have both signal
+    # pins on the left (pins 1-7) while C and D have theirs on the right.
+    # Channels arrive from the left and the control line comes down the
+    # right, so using only A and B keeps the two apart entirely -- with C
+    # and D in use the switched-node runs and the control line have to cross
+    # each other, and on a 4-layer board there is nowhere left to put them.
+    # Two spare cells per package is a cheap price for that.
+    PACKAGES = ("U8", "U9", "U10")
+    for position, ref in enumerate(PACKAGES):
         design.add(Part(ref, "CD4066B", "Analog_Switch:CD4066BM", SWITCH_FP, units=5,
                         datasheet=SWITCH_DATASHEET, mpn="CD4066BM96",
                         description="Quad analog switch, pizz/arco"))
         design.connect("V-", (ref, 7))
         design.connect("V+", (ref, 14))
 
-    for ref, pin_a, pin_b, ctrl, index in layout:
-        design.connect(f"SWN{index}", (ref, pin_a))
-        design.connect("AGND", (ref, pin_b))
-        design.connect("SW_CTL", (ref, ctrl))
+        # Cell A carries the odd channel, cell B the even one.
+        for cell, (pin_a, pin_b, ctrl) in enumerate(((1, 2, 13), (3, 4, 5))):
+            index = position * 2 + cell + 1
+            design.connect(f"SWN{index}", (ref, pin_a))
+            design.connect("AGND", (ref, pin_b))
+            design.connect("SW_CTL", (ref, ctrl))
 
-    # U9's two spare switches: signal pins parked on AGND, controls held at
-    # V- so no CMOS input is left floating.
-    for pin_a, pin_b, ctrl in ((8, 9, 6), (10, 11, 12)):
-        design.connect("AGND", ("U9", pin_a), ("U9", pin_b))
-        design.connect("V-", ("U9", ctrl))
+        # Cells C and D unused: signal pins parked on AGND, controls held at
+        # V- so no CMOS input is ever left floating.
+        for pin_a, pin_b, ctrl in ((8, 9, 6), (10, 11, 12)):
+            design.connect("AGND", (ref, pin_a), (ref, pin_b))
+            design.connect("V-", (ref, ctrl))
 
-    _capacitor(design, "C801", "100n", "V+", "AGND", "U8 decoupling")
-    _capacitor(design, "C802", "100n", "V-", "AGND", "U8 decoupling")
-    _capacitor(design, "C901", "100n", "V+", "AGND", "U9 decoupling")
-    _capacitor(design, "C902", "100n", "V-", "AGND", "U9 decoupling")
+        _capacitor(design, f"C80{position * 2 + 1}", "100n", "V+", "AGND",
+                   f"{ref} decoupling")
+        _capacitor(design, f"C80{position * 2 + 2}", "100n", "V-", "AGND",
+                   f"{ref} decoupling")
 
     design.add(Part("J8", "PIZZ/ARCO", "Connector_Generic:Conn_01x02",
                     "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",

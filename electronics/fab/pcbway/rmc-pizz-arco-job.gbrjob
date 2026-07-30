@@ -5,7 +5,7 @@
       "Application": "Pcbnew",
       "Version": "10.0.5"
     },
-    "CreationDate": "2026-07-30T00:16:46+01:00"
+    "CreationDate": "2026-07-30T06:42:53+01:00"
   },
   "GeneralSpecs": {
     "ProjectId": {
@@ -62,26 +62,6 @@
       "FilePolarity": "Positive"
     },
     {
-      "Path": "rmc-pizz-arco-F_Adhesive.gta",
-      "FileFunction": "Glue,Top",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "rmc-pizz-arco-B_Adhesive.gba",
-      "FileFunction": "Glue,Bot",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "rmc-pizz-arco-F_Paste.gtp",
-      "FileFunction": "SolderPaste,Top",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "rmc-pizz-arco-B_Paste.gbp",
-      "FileFunction": "SolderPaste,Bot",
-      "FilePolarity": "Positive"
-    },
-    {
       "Path": "rmc-pizz-arco-F_Silkscreen.gto",
       "FileFunction": "Legend,Top",
       "FilePolarity": "Positive"
@@ -102,58 +82,8 @@
       "FilePolarity": "Negative"
     },
     {
-      "Path": "rmc-pizz-arco-User_Drawings.gbr",
-      "FileFunction": "Other,User",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "rmc-pizz-arco-User_Comments.gbr",
-      "FileFunction": "Other,User",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "rmc-pizz-arco-User_Eco1.gbr",
-      "FileFunction": "Other,User",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "rmc-pizz-arco-User_Eco2.gbr",
-      "FileFunction": "Other,User",
-      "FilePolarity": "Positive"
-    },
-    {
       "Path": "rmc-pizz-arco-Edge_Cuts.gm1",
       "FileFunction": "Profile",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "rmc-pizz-arco-F_Fab.gbr",
-      "FileFunction": "AssemblyDrawing,Top",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "rmc-pizz-arco-B_Fab.gbr",
-      "FileFunction": "AssemblyDrawing,Bot",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "rmc-pizz-arco-User_1.gbr",
-      "FileFunction": "Other,User",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "rmc-pizz-arco-User_2.gbr",
-      "FileFunction": "Other,User",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "rmc-pizz-arco-User_3.gbr",
-      "FileFunction": "Other,User",
-      "FilePolarity": "Positive"
-    },
-    {
-      "Path": "rmc-pizz-arco-User_4.gbr",
-      "FileFunction": "Other,User",
       "FilePolarity": "Positive"
     }
   ],

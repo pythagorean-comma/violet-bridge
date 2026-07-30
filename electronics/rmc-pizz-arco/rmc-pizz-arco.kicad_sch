@@ -6966,13 +6966,24 @@
 	(wire
 		(pts
 			(xy 292.1 231.14)
-			(xy 279.4 231.14)
+			(xy 284.48 231.14)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "05d8c19e-b5e5-5376-b166-a3385d5ce577")
+		(uuid "381d67be-f64e-5320-af05-5148da86f9b8")
+	)
+	(wire
+		(pts
+			(xy 284.48 231.14)
+			(xy 284.48 236.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "16e42bf2-e895-578e-880b-e66023cb6ada")
 	)
 	(wire
 		(pts
@@ -6983,7 +6994,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "9fc2aea6-a395-59eb-81ec-155b0353589b")
+		(uuid "b287042a-bb78-56b9-a098-d047eef1afeb")
 	)
 	(wire
 		(pts
@@ -6994,7 +7005,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "78a8a3d7-ac47-504a-a57e-a31155624c75")
+		(uuid "c5a703b3-36a6-5b7b-aeee-522f67966375")
 	)
 	(wire
 		(pts
@@ -7005,18 +7016,29 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "0327c351-e5e6-58c5-8b67-5f4939194f55")
+		(uuid "eb384f25-82e3-5720-a2d0-6dde695e379b")
 	)
 	(wire
 		(pts
 			(xy 292.1 259.08)
-			(xy 279.4 259.08)
+			(xy 284.48 259.08)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "a9d7f376-1392-5525-bd78-32e913de7024")
+		(uuid "27cea795-0433-52e3-b289-2d6c6c9d3bd8")
+	)
+	(wire
+		(pts
+			(xy 284.48 259.08)
+			(xy 284.48 264.16)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "40d42909-718b-5484-93dd-6a1e34298055")
 	)
 	(wire
 		(pts
@@ -7027,7 +7049,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "3d515dfb-cffc-5102-b812-d086fa41d108")
+		(uuid "222d5508-73c0-5266-bd5a-d26c34d5983c")
 	)
 	(wire
 		(pts
@@ -7038,7 +7060,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "88eba018-8460-518e-bafb-7e474421ec58")
+		(uuid "fb726731-1d79-525a-bcd7-4edb976021a5")
 	)
 	(wire
 		(pts
@@ -7049,205 +7071,403 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "c9cb1adc-964e-56f6-9b40-f18ca78f5236")
+		(uuid "94a35db5-9053-58f1-8b7f-2ae72fd401f6")
 	)
 	(wire
 		(pts
-			(xy 387.35 175.26)
-			(xy 374.65 175.26)
+			(xy 363.22 175.26)
+			(xy 350.52 175.26)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "3a76f33c-14d9-5580-87c0-2de3679f4820")
+		(uuid "10cfd007-9a49-5758-91f3-68f7ad751f26")
 	)
 	(wire
 		(pts
-			(xy 394.97 180.34)
-			(xy 394.97 187.96)
+			(xy 370.84 180.34)
+			(xy 370.84 187.96)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "82be1fcb-9c61-5fc1-bb65-163d5bdcd85e")
+		(uuid "04823a7c-1797-5046-a99c-62c841d5f429")
 	)
 	(wire
 		(pts
-			(xy 402.59 175.26)
-			(xy 410.21 175.26)
+			(xy 378.46 175.26)
+			(xy 386.08 175.26)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "a598a5e5-a9fd-54fb-8810-adda1a6718a2")
+		(uuid "c31b3a05-863d-5e8e-ab16-0a92fce76842")
 	)
 	(wire
 		(pts
-			(xy 410.21 175.26)
-			(xy 410.21 180.34)
+			(xy 386.08 175.26)
+			(xy 386.08 180.34)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "50261a0c-065e-5d8a-9636-f187abea6e28")
+		(uuid "db43a0cd-1777-5696-a319-35de474f59cb")
 	)
 	(wire
 		(pts
-			(xy 387.35 203.2)
-			(xy 374.65 203.2)
+			(xy 363.22 203.2)
+			(xy 350.52 203.2)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "1f464eb7-a926-5879-a4cb-84dd600f976c")
+		(uuid "5aa30035-ac5b-5c55-b07e-a9c19d11afe0")
 	)
 	(wire
 		(pts
-			(xy 394.97 208.28)
-			(xy 394.97 215.9)
+			(xy 370.84 208.28)
+			(xy 370.84 215.9)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "cdca8fdb-138e-58cc-950d-654db5db3e1f")
+		(uuid "85a9d23c-2204-568f-a8b7-f650aa760e15")
 	)
 	(wire
 		(pts
-			(xy 402.59 203.2)
-			(xy 410.21 203.2)
+			(xy 378.46 203.2)
+			(xy 386.08 203.2)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "56aefdfc-bd1d-53b8-82fc-602db3144e09")
+		(uuid "2105a112-efd0-5b1e-a794-3c1e8fb885a6")
 	)
 	(wire
 		(pts
-			(xy 410.21 203.2)
-			(xy 410.21 208.28)
+			(xy 386.08 203.2)
+			(xy 386.08 208.28)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "b4298c0d-671f-5624-b2f1-11eb4ba0cc89")
+		(uuid "76e4fa79-f3d2-529c-be78-b4946a96d0e9")
 	)
 	(wire
 		(pts
-			(xy 387.35 231.14)
-			(xy 379.73 231.14)
+			(xy 363.22 231.14)
+			(xy 355.6 231.14)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "10686f41-fd09-5f5f-972c-a25e38af8ade")
+		(uuid "34211843-36e3-5d4c-8fc9-7d44f54f1d1b")
 	)
 	(wire
 		(pts
-			(xy 379.73 231.14)
-			(xy 379.73 236.22)
+			(xy 355.6 231.14)
+			(xy 355.6 236.22)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "a8193e54-b555-5192-98f5-2ad990ba4242")
+		(uuid "84e20173-ca46-5374-84c2-acbd3180ba90")
 	)
 	(wire
 		(pts
-			(xy 394.97 236.22)
-			(xy 394.97 243.84)
+			(xy 370.84 236.22)
+			(xy 370.84 243.84)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "c763d68c-15e7-5124-8531-09b238a76144")
+		(uuid "38babf2b-bb4b-52d0-939e-34052166f872")
 	)
 	(wire
 		(pts
-			(xy 402.59 231.14)
-			(xy 410.21 231.14)
+			(xy 378.46 231.14)
+			(xy 386.08 231.14)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "0d3bba94-805f-5af6-b0e6-a99edd099909")
+		(uuid "80690f10-8f88-586b-a395-a06fc2d2fdf0")
 	)
 	(wire
 		(pts
-			(xy 410.21 231.14)
-			(xy 410.21 236.22)
+			(xy 386.08 231.14)
+			(xy 386.08 236.22)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "ee173d3c-dc09-59d1-8315-9090c4d43788")
+		(uuid "6e3e276b-af6a-5230-85c7-5e6514583600")
 	)
 	(wire
 		(pts
-			(xy 387.35 259.08)
-			(xy 379.73 259.08)
+			(xy 363.22 259.08)
+			(xy 355.6 259.08)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "3f873516-3eff-5452-89e1-29ad64a2cb85")
+		(uuid "e0d94f6e-744a-5db0-bb60-c45eacba926b")
 	)
 	(wire
 		(pts
-			(xy 379.73 259.08)
-			(xy 379.73 264.16)
+			(xy 355.6 259.08)
+			(xy 355.6 264.16)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "bf4e19e3-c34a-53ec-b0c3-1d8807401348")
+		(uuid "5cc57d73-e717-5e3d-9957-2d0445307af3")
 	)
 	(wire
 		(pts
-			(xy 394.97 264.16)
-			(xy 394.97 271.78)
+			(xy 370.84 264.16)
+			(xy 370.84 271.78)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "90d0fded-0be0-5e24-8e4d-3fe8e09d28ff")
+		(uuid "e1bb9c99-e932-593c-b607-942689fb0dac")
 	)
 	(wire
 		(pts
-			(xy 402.59 259.08)
-			(xy 410.21 259.08)
+			(xy 378.46 259.08)
+			(xy 386.08 259.08)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "eb643cb1-1480-5f2a-ae7c-47ee20bbad99")
+		(uuid "1c8e4b17-94f1-5c07-a844-4fa1d16d5078")
 	)
 	(wire
 		(pts
-			(xy 410.21 259.08)
-			(xy 410.21 264.16)
+			(xy 386.08 259.08)
+			(xy 386.08 264.16)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "e0c6fd93-2906-5d71-9c39-aef9ecfe4ffb")
+		(uuid "67e13e51-e8dd-5198-a838-c169f82ddc4a")
+	)
+	(wire
+		(pts
+			(xy 434.34 175.26)
+			(xy 421.64 175.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4de3c952-cae6-5614-9a6e-4ce49fbc19b4")
+	)
+	(wire
+		(pts
+			(xy 441.96 180.34)
+			(xy 441.96 187.96)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "54afa7ca-c142-51b6-a370-73d39bbf71fd")
+	)
+	(wire
+		(pts
+			(xy 449.58 175.26)
+			(xy 457.2 175.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cc5c3e31-d39b-56dd-9c44-492441a6ea9f")
+	)
+	(wire
+		(pts
+			(xy 457.2 175.26)
+			(xy 457.2 180.34)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "992a1b08-d69e-551a-8ecc-89f2a5cf1426")
+	)
+	(wire
+		(pts
+			(xy 434.34 203.2)
+			(xy 421.64 203.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8fc9ffeb-7e09-5d82-b3d7-aa1217994c53")
+	)
+	(wire
+		(pts
+			(xy 441.96 208.28)
+			(xy 441.96 215.9)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8ae8a86d-add7-5885-b005-e09b00dd0918")
+	)
+	(wire
+		(pts
+			(xy 449.58 203.2)
+			(xy 457.2 203.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "37f3cc96-114e-5461-a651-696dc949c77d")
+	)
+	(wire
+		(pts
+			(xy 457.2 203.2)
+			(xy 457.2 208.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "811f6b4e-48b8-550e-9427-4bf915cd429e")
+	)
+	(wire
+		(pts
+			(xy 434.34 231.14)
+			(xy 426.72 231.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3f89509c-519a-511d-a902-1286445c1cc7")
+	)
+	(wire
+		(pts
+			(xy 426.72 231.14)
+			(xy 426.72 236.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f15af20a-2e81-5e9e-8be1-4f7a28659e6f")
+	)
+	(wire
+		(pts
+			(xy 441.96 236.22)
+			(xy 441.96 243.84)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "889990cf-8eb5-58a1-b190-d798b7669db6")
+	)
+	(wire
+		(pts
+			(xy 449.58 231.14)
+			(xy 457.2 231.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "29f9be09-13e8-50ce-a710-577ee568e8ae")
+	)
+	(wire
+		(pts
+			(xy 457.2 231.14)
+			(xy 457.2 236.22)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "13a5c6fd-fa9e-53db-b873-4473a4cec684")
+	)
+	(wire
+		(pts
+			(xy 434.34 259.08)
+			(xy 426.72 259.08)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cbb65ead-e85e-54ce-959b-e0a6a00e0204")
+	)
+	(wire
+		(pts
+			(xy 426.72 259.08)
+			(xy 426.72 264.16)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "478e4df5-2d5d-5866-b08e-110c27befec3")
+	)
+	(wire
+		(pts
+			(xy 441.96 264.16)
+			(xy 441.96 271.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "91c112c7-05d0-59ae-9a3c-f74d9ac73fc2")
+	)
+	(wire
+		(pts
+			(xy 449.58 259.08)
+			(xy 457.2 259.08)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0daa3b98-6eb7-5661-a2fe-48e785fba5d8")
+	)
+	(wire
+		(pts
+			(xy 457.2 259.08)
+			(xy 457.2 264.16)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9700688b-47b9-5628-989b-52abf22a5caf")
 	)
 	(wire
 		(pts
@@ -7258,7 +7478,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "34328fa4-7f7d-51b4-a08f-565412bfa81e")
+		(uuid "541fe06d-047f-522a-b90f-0ac3c0eca74c")
 	)
 	(wire
 		(pts
@@ -7269,7 +7489,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "a213d637-5df7-5627-93b1-5bc6024e5ff4")
+		(uuid "cb78d8cd-bad2-54a6-8e95-98cfb942cc49")
 	)
 	(wire
 		(pts
@@ -7280,7 +7500,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "1de59390-7e1a-5cce-bb02-7b528715cce1")
+		(uuid "2d6026c0-16c0-5a57-b638-fecaeab99705")
 	)
 	(wire
 		(pts
@@ -7291,7 +7511,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "3a887955-b543-52a0-8945-03fc316aca75")
+		(uuid "2ca162af-1085-5cf6-8b7f-1b8ffcd4afaa")
 	)
 	(wire
 		(pts
@@ -7302,7 +7522,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "a960446c-3ea6-5144-a7c1-58160657fe60")
+		(uuid "dba2d0ef-ed3b-51d3-889e-031cd759fb7d")
 	)
 	(wire
 		(pts
@@ -7313,7 +7533,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "cb51dfaf-713d-57fc-b41f-fd28d738cf02")
+		(uuid "3b089fb4-0556-5e41-91de-7aa759a82663")
 	)
 	(wire
 		(pts
@@ -7324,84 +7544,161 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "011a87cd-1497-5ff2-be05-d18ea1136498")
+		(uuid "be808b16-995c-557f-b48b-86986c90a9c7")
 	)
 	(wire
 		(pts
-			(xy 394.97 285.75)
-			(xy 394.97 280.67)
+			(xy 370.84 285.75)
+			(xy 370.84 280.67)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "4a590375-e8ba-562e-aec4-dd69d5b45e22")
+		(uuid "e993be7f-1743-5995-88e9-e965123a49d8")
 	)
 	(wire
 		(pts
-			(xy 394.97 300.99)
-			(xy 394.97 306.07)
+			(xy 370.84 300.99)
+			(xy 370.84 306.07)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "ddfc8cd9-1604-56d1-9b31-b2538f479afc")
+		(uuid "a8a8f38d-75ea-52a0-a2f5-d6328ffae6e1")
 	)
 	(wire
 		(pts
-			(xy 415.29 283.21)
-			(xy 415.29 280.67)
+			(xy 391.16 283.21)
+			(xy 391.16 280.67)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "15d78d6e-ef0d-5d1b-8b5b-945c3ba93483")
+		(uuid "13bbcff9-4109-5844-88fc-c711d43100ff")
 	)
 	(wire
 		(pts
-			(xy 415.29 290.83)
-			(xy 415.29 293.37)
+			(xy 391.16 290.83)
+			(xy 391.16 293.37)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "104737c6-6bd7-5a0b-b321-90d458dc32f8")
+		(uuid "a3504f51-a7b9-5ff4-a148-9c1c43c3fb61")
 	)
 	(wire
 		(pts
-			(xy 415.29 295.91)
-			(xy 415.29 293.37)
+			(xy 391.16 295.91)
+			(xy 391.16 293.37)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "d5d258c4-ab43-5537-9bc9-acb64bb57b18")
+		(uuid "034da9b8-f766-534c-a60e-39108da0f892")
 	)
 	(wire
 		(pts
-			(xy 415.29 303.53)
-			(xy 415.29 306.07)
+			(xy 391.16 303.53)
+			(xy 391.16 306.07)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "2b845027-9e44-5e83-869c-4b2ab295c796")
+		(uuid "a0f4b1c8-8e11-5ebb-a393-786fd3dd7c69")
 	)
 	(wire
 		(pts
-			(xy 415.29 293.37)
-			(xy 422.91 293.37)
+			(xy 391.16 293.37)
+			(xy 398.78 293.37)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "5438104b-0a19-5335-93ff-5f7fbe1dfa0d")
+		(uuid "2b190cf8-48f7-52a9-8ef2-5947e475c26e")
+	)
+	(wire
+		(pts
+			(xy 441.96 285.75)
+			(xy 441.96 280.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8a870dea-76da-5c61-b857-33b28792bf75")
+	)
+	(wire
+		(pts
+			(xy 441.96 300.99)
+			(xy 441.96 306.07)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b23d6573-f4a9-562a-a5eb-1537ae12a287")
+	)
+	(wire
+		(pts
+			(xy 462.28 283.21)
+			(xy 462.28 280.67)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f153038f-4275-5630-a407-fdec645c03fd")
+	)
+	(wire
+		(pts
+			(xy 462.28 290.83)
+			(xy 462.28 293.37)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "243ed41a-32fd-50c0-be90-00c108f710e8")
+	)
+	(wire
+		(pts
+			(xy 462.28 295.91)
+			(xy 462.28 293.37)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "808d8639-843f-59d1-963f-c59c1950b078")
+	)
+	(wire
+		(pts
+			(xy 462.28 303.53)
+			(xy 462.28 306.07)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "477a785f-4352-5f6d-bb3b-73163e7cd6fc")
+	)
+	(wire
+		(pts
+			(xy 462.28 293.37)
+			(xy 469.9 293.37)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "09fc46c9-a786-5a2b-a889-7f7b4e7f19e2")
 	)
 	(wire
 		(pts
@@ -7412,7 +7709,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "11c26c81-aa45-5219-b41a-de3e2274005b")
+		(uuid "8571b32d-e901-595d-ae84-13809775ee23")
 	)
 	(wire
 		(pts
@@ -7423,7 +7720,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "2b7eeee7-d11a-5c93-9a4e-8b1b27843333")
+		(uuid "b4c93796-9605-5fc9-a57e-637c1fe213eb")
 	)
 	(wire
 		(pts
@@ -7434,7 +7731,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "8bc51ee7-db99-5595-b0f5-5e5c41806aee")
+		(uuid "b17ba2a2-6d4f-53ef-b55f-c01a4260e83f")
 	)
 	(wire
 		(pts
@@ -7445,7 +7742,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "ee1d01eb-8dc9-5c88-b276-bdc3009873b4")
+		(uuid "7e3cf612-5c5d-5c0f-a5f5-f7ffa638181b")
 	)
 	(wire
 		(pts
@@ -7456,7 +7753,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "03365d48-8757-5a29-b016-96cd07137662")
+		(uuid "3ac49f5f-360f-588d-8b77-7078f7d000c0")
 	)
 	(wire
 		(pts
@@ -7467,7 +7764,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "fc1d7232-35be-57da-963e-1fceff269b7a")
+		(uuid "d3e70df6-5c0b-51c6-a4be-057decc66e44")
 	)
 	(wire
 		(pts
@@ -7478,7 +7775,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "59f8fa94-9216-519c-98f8-3262a3e724b1")
+		(uuid "1dfb6243-5570-5786-8f8a-af01f4e9f81e")
 	)
 	(wire
 		(pts
@@ -7489,7 +7786,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "582d64ae-bab8-524f-b971-457877aff650")
+		(uuid "910a0c3d-690c-5b66-b439-f4947e8d107e")
 	)
 	(wire
 		(pts
@@ -7500,7 +7797,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "2d0e858f-4843-5e34-a449-4945c99697d7")
+		(uuid "337bf905-77bc-5113-bd97-4ba9a495cced")
 	)
 	(wire
 		(pts
@@ -7511,7 +7808,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "13d724c9-6c89-51f0-a238-85a50e527337")
+		(uuid "940e1a9d-e2df-5f16-bc66-87ababf6b6fd")
 	)
 	(wire
 		(pts
@@ -7522,7 +7819,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "b11b4509-7957-5bb7-b089-40b81980a33e")
+		(uuid "3f8fde57-51f9-5610-94e6-277341f4aef0")
 	)
 	(wire
 		(pts
@@ -7533,7 +7830,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "06b735d6-4fd5-5502-9213-0082f9771e4a")
+		(uuid "3a554f41-ab65-56f2-a677-756c9fb6edd5")
 	)
 	(wire
 		(pts
@@ -7544,7 +7841,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "048ee821-a76d-56f4-bef3-605d376374ed")
+		(uuid "42ede603-2b5e-535a-afa2-a60529161201")
 	)
 	(wire
 		(pts
@@ -7555,7 +7852,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "4b1a8ab9-a19d-5599-90ff-2b95460f7834")
+		(uuid "b18a8fe9-f58b-57ae-b10f-9c2ef609c697")
 	)
 	(wire
 		(pts
@@ -7566,7 +7863,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "62e4e87a-5c29-5006-9bb0-16e579d6617e")
+		(uuid "b35cfbf0-56e2-5e2c-b65a-97d6ffe0aba2")
 	)
 	(wire
 		(pts
@@ -7577,7 +7874,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "ab68e4f6-77a4-5272-a7fc-9c0e332216c7")
+		(uuid "d5f10b34-0b3d-5ce9-b49a-a9da197e5a10")
 	)
 	(wire
 		(pts
@@ -7588,7 +7885,7 @@
 			(width 0)
 			(type default)
 		)
-		(uuid "c1f3aafe-454d-573d-a45a-827710f36311")
+		(uuid "693087ea-1a17-50c3-85b4-937c0f7050d4")
 	)
 	(junction
 		(at 45.72 35.56)
@@ -8131,6 +8428,12 @@
 		(uuid "27189080-7e2a-5f55-8a7d-91c61fbb4bf9")
 	)
 	(junction
+		(at 391.16 293.37)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "f6ac196a-2f0c-5bf1-aa94-a1a3471ca8f2")
+	)
+	(junction
 		(at 401.32 86.36)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -8143,10 +8446,10 @@
 		(uuid "d6307a4a-25bf-598a-bcd1-391f17bfb3e3")
 	)
 	(junction
-		(at 415.29 293.37)
+		(at 462.28 293.37)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "cc36b7ce-9ffb-57eb-b415-e9a767af1c56")
+		(uuid "0d0199b2-7665-5c6b-9cdc-c0f6fbcb0b69")
 	)
 	(global_label "OUT1"
 		(shape input)
@@ -8687,18 +8990,7 @@
 		)
 		(uuid "184964cd-b924-569a-8d53-f02657fcbf70")
 	)
-	(global_label "SWN3"
-		(shape input)
-		(at 279.4 231.14 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "9fcc0294-eefc-57d3-9bda-1479a25bb567")
-	)
-	(global_label "SW_CTL"
+	(global_label "V-"
 		(shape input)
 		(at 299.72 243.84 270)
 		(effects
@@ -8707,20 +8999,9 @@
 			)
 			(justify right)
 		)
-		(uuid "991004da-1ebe-55f7-87d6-af5f85fdac52")
+		(uuid "4a37842f-776c-5bdc-ab58-ea5a662f4c92")
 	)
-	(global_label "SWN4"
-		(shape input)
-		(at 279.4 259.08 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "1e697192-b14b-5754-bf53-0fa456b8f1fa")
-	)
-	(global_label "SW_CTL"
+	(global_label "V-"
 		(shape input)
 		(at 299.72 271.78 270)
 		(effects
@@ -8729,73 +9010,139 @@
 			)
 			(justify right)
 		)
-		(uuid "2b5eef75-32a0-5035-86ea-7fe97bee9cb7")
+		(uuid "3bfaaa36-fc97-5b72-9351-fc13815f3af9")
+	)
+	(global_label "SWN3"
+		(shape input)
+		(at 350.52 175.26 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "1c8d1e7e-3931-5f64-80f3-8708c4ab5ad3")
+	)
+	(global_label "SW_CTL"
+		(shape input)
+		(at 370.84 187.96 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "d11bd3d0-9782-5579-bef5-7e6101879738")
+	)
+	(global_label "SWN4"
+		(shape input)
+		(at 350.52 203.2 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "abf0f67f-af1a-52be-b922-6997c19a5216")
+	)
+	(global_label "SW_CTL"
+		(shape input)
+		(at 370.84 215.9 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "d2bf5ec1-ba79-5190-91b7-7066570c17ac")
+	)
+	(global_label "V-"
+		(shape input)
+		(at 370.84 243.84 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "95fdb9ab-109b-5e6b-9738-033e26f0ef58")
+	)
+	(global_label "V-"
+		(shape input)
+		(at 370.84 271.78 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "4a656132-e3da-5b9b-b69e-c92e51061f32")
 	)
 	(global_label "SWN5"
 		(shape input)
-		(at 374.65 175.26 180)
+		(at 421.64 175.26 180)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "160fd27d-144f-5b81-9f8f-fd44312eef46")
+		(uuid "d6699b82-d6a0-5ee1-bb30-e9f3bcde373b")
 	)
 	(global_label "SW_CTL"
 		(shape input)
-		(at 394.97 187.96 270)
+		(at 441.96 187.96 270)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "86db5ca9-1ddf-569a-b8db-75a19a397ff4")
+		(uuid "0cc08b7e-b909-5c0c-bd41-b34c8142ba52")
 	)
 	(global_label "SWN6"
 		(shape input)
-		(at 374.65 203.2 180)
+		(at 421.64 203.2 180)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "37b6f10d-8591-5cfe-9e70-2672f10359e5")
+		(uuid "24b214fe-ed3d-5a88-980c-eb6ec54e7ebf")
 	)
 	(global_label "SW_CTL"
 		(shape input)
-		(at 394.97 215.9 270)
+		(at 441.96 215.9 270)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "276b9975-441c-55d2-b060-c8539625c9c6")
+		(uuid "f3015bc1-ad3b-5839-939c-e4c569a62328")
 	)
 	(global_label "V-"
 		(shape input)
-		(at 394.97 243.84 270)
+		(at 441.96 243.84 270)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "e3a24999-d45c-515e-b8c8-1442cf8b53e0")
+		(uuid "9344e6b3-2cea-5c2a-a0d1-23cea2562966")
 	)
 	(global_label "V-"
 		(shape input)
-		(at 394.97 271.78 270)
+		(at 441.96 271.78 270)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "72c95f1f-91d6-5804-bfe4-c8505fc351eb")
+		(uuid "db127135-25ec-583d-a2a7-bafc0cbe7a77")
 	)
 	(global_label "V+"
 		(shape input)
@@ -8843,47 +9190,91 @@
 	)
 	(global_label "V+"
 		(shape input)
-		(at 394.97 280.67 90)
+		(at 370.84 280.67 90)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left)
 		)
-		(uuid "e0141239-d6c6-54e4-b265-24015e6ecd81")
+		(uuid "768f3557-87b1-5d34-9639-499e5c81abf0")
 	)
 	(global_label "V-"
 		(shape input)
-		(at 394.97 306.07 270)
+		(at 370.84 306.07 270)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "5117447a-15c3-5389-b699-96276938abf2")
+		(uuid "e466c1e2-ff34-55f5-b7a1-304c7e4a9934")
 	)
 	(global_label "V+"
 		(shape input)
-		(at 415.29 280.67 90)
+		(at 391.16 280.67 90)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify left)
 		)
-		(uuid "592ff7c7-e1b3-5dd0-8527-3a9c8c773fbf")
+		(uuid "6c4ccc25-488a-53ce-9da7-12e5be3581f7")
 	)
 	(global_label "V-"
 		(shape input)
-		(at 415.29 306.07 270)
+		(at 391.16 306.07 270)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
 			(justify right)
 		)
-		(uuid "32794523-21e4-5762-a27a-c58086c1e042")
+		(uuid "2f5567b4-3855-5afe-ab5f-6e5fc6cc584f")
+	)
+	(global_label "V+"
+		(shape input)
+		(at 441.96 280.67 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "cf957bc2-f14a-5b79-babd-2a8ba829c3e7")
+	)
+	(global_label "V-"
+		(shape input)
+		(at 441.96 306.07 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "92dd83ae-95d2-5857-ad5a-f84a26ec4919")
+	)
+	(global_label "V+"
+		(shape input)
+		(at 462.28 280.67 90)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "ecab8e98-ea9c-5640-bc05-2bbf6ede4497")
+	)
+	(global_label "V-"
+		(shape input)
+		(at 462.28 306.07 270)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "3359a99b-8821-5491-8fd2-3eabe2aef081")
 	)
 	(global_label "SW_CTL"
 		(shape input)
@@ -19172,7 +19563,7 @@
 	)
 	(symbol
 		(lib_id "power:GNDA")
-		(at 314.96 236.22 0)
+		(at 284.48 236.22 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -19180,6 +19571,65 @@
 		(dnp no)
 		(uuid "1c598c9b-463a-554f-a0f2-8e9d7fc92093")
 		(property "Reference" "#PWR036"
+			(at 284.48 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "AGND"
+			(at 284.48 242.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 284.48 236.22 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 284.48 236.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "b29aeb8d-1e0b-59d5-b9e5-ce2e9346e95d")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "#PWR036")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GNDA")
+		(at 314.96 236.22 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a873f547-20c4-5958-aaed-e6067f0efebc")
+		(property "Reference" "#PWR037"
 			(at 314.96 229.87 0)
 			(effects
 				(font
@@ -19218,12 +19668,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "b29aeb8d-1e0b-59d5-b9e5-ce2e9346e95d")
+			(uuid "8107efef-4d3b-5249-a08d-db60a59623f3")
 		)
 		(instances
 			(project "rmc-pizz-arco"
 				(path "/a22fb751-4134-552b-b166-193c98de718d"
-					(reference "#PWR036")
+					(reference "#PWR037")
 					(unit 1)
 				)
 			)
@@ -19328,14 +19778,73 @@
 	)
 	(symbol
 		(lib_id "power:GNDA")
+		(at 284.48 264.16 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "9316f20d-4a6a-5174-8228-7b558dc318ba")
+		(property "Reference" "#PWR038"
+			(at 284.48 257.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "AGND"
+			(at 284.48 270.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 284.48 264.16 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 284.48 264.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "1fdf3330-a099-5c4f-9e97-ff2eed090a89")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "#PWR038")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GNDA")
 		(at 314.96 264.16 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "a873f547-20c4-5958-aaed-e6067f0efebc")
-		(property "Reference" "#PWR037"
+		(uuid "6202c955-5bf6-56a3-8baf-481afa97700c")
+		(property "Reference" "#PWR039"
 			(at 314.96 257.81 0)
 			(effects
 				(font
@@ -19374,12 +19883,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "8107efef-4d3b-5249-a08d-db60a59623f3")
+			(uuid "8fd2d553-383d-5b89-bea6-4e4640b7ec1d")
 		)
 		(instances
 			(project "rmc-pizz-arco"
 				(path "/a22fb751-4134-552b-b166-193c98de718d"
-					(reference "#PWR037")
+					(reference "#PWR039")
 					(unit 1)
 				)
 			)
@@ -19387,7 +19896,7 @@
 	)
 	(symbol
 		(lib_id "Analog_Switch:CD4066BM")
-		(at 394.97 175.26 0)
+		(at 370.84 175.26 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -19395,7 +19904,7 @@
 		(dnp no)
 		(uuid "4af4a04d-3713-522a-b282-95ca757f4fe1")
 		(property "Reference" "U9"
-			(at 394.97 168.91 0)
+			(at 370.84 168.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19404,7 +19913,7 @@
 			)
 		)
 		(property "Value" "CD4066B"
-			(at 394.97 181.61 0)
+			(at 370.84 181.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19413,7 +19922,7 @@
 			)
 		)
 		(property "Footprint" "Package_SO:SO-14_3.9x8.65mm_P1.27mm"
-			(at 394.97 175.26 0)
+			(at 370.84 175.26 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -19422,7 +19931,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/cd4066b.pdf"
-			(at 394.97 175.26 0)
+			(at 370.84 175.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19483,15 +19992,15 @@
 	)
 	(symbol
 		(lib_id "power:GNDA")
-		(at 410.21 180.34 0)
+		(at 386.08 180.34 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "9316f20d-4a6a-5174-8228-7b558dc318ba")
-		(property "Reference" "#PWR038"
-			(at 410.21 173.99 0)
+		(uuid "4bff3f90-3a35-5c02-a346-20bc2e98dbcd")
+		(property "Reference" "#PWR040"
+			(at 386.08 173.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19501,7 +20010,7 @@
 			)
 		)
 		(property "Value" "AGND"
-			(at 410.21 186.69 0)
+			(at 386.08 186.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19511,7 +20020,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 410.21 180.34 0)
+			(at 386.08 180.34 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -19520,7 +20029,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 410.21 180.34 0)
+			(at 386.08 180.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19529,12 +20038,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "1fdf3330-a099-5c4f-9e97-ff2eed090a89")
+			(uuid "635b96a5-98be-5a6f-8491-7831ed131e72")
 		)
 		(instances
 			(project "rmc-pizz-arco"
 				(path "/a22fb751-4134-552b-b166-193c98de718d"
-					(reference "#PWR038")
+					(reference "#PWR040")
 					(unit 1)
 				)
 			)
@@ -19542,7 +20051,7 @@
 	)
 	(symbol
 		(lib_id "Analog_Switch:CD4066BM")
-		(at 394.97 203.2 0)
+		(at 370.84 203.2 0)
 		(mirror y)
 		(unit 2)
 		(exclude_from_sim no)
@@ -19551,7 +20060,7 @@
 		(dnp no)
 		(uuid "1b7ae666-85d2-5ab8-aece-7d1e43f475cd")
 		(property "Reference" "U9"
-			(at 394.97 196.85 0)
+			(at 370.84 196.85 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19560,7 +20069,7 @@
 			)
 		)
 		(property "Value" "CD4066B"
-			(at 394.97 209.55 0)
+			(at 370.84 209.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19569,7 +20078,7 @@
 			)
 		)
 		(property "Footprint" "Package_SO:SO-14_3.9x8.65mm_P1.27mm"
-			(at 394.97 203.2 0)
+			(at 370.84 203.2 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -19578,7 +20087,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/cd4066b.pdf"
-			(at 394.97 203.2 0)
+			(at 370.84 203.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19639,15 +20148,15 @@
 	)
 	(symbol
 		(lib_id "power:GNDA")
-		(at 410.21 208.28 0)
+		(at 386.08 208.28 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "6202c955-5bf6-56a3-8baf-481afa97700c")
-		(property "Reference" "#PWR039"
-			(at 410.21 201.93 0)
+		(uuid "56a9ba89-c329-51ab-8c09-b927c2a3b41d")
+		(property "Reference" "#PWR041"
+			(at 386.08 201.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19657,7 +20166,7 @@
 			)
 		)
 		(property "Value" "AGND"
-			(at 410.21 214.63 0)
+			(at 386.08 214.63 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19667,7 +20176,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 410.21 208.28 0)
+			(at 386.08 208.28 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -19676,7 +20185,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 410.21 208.28 0)
+			(at 386.08 208.28 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19685,12 +20194,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "8fd2d553-383d-5b89-bea6-4e4640b7ec1d")
+			(uuid "c58d694d-4957-5634-9448-90b965770978")
 		)
 		(instances
 			(project "rmc-pizz-arco"
 				(path "/a22fb751-4134-552b-b166-193c98de718d"
-					(reference "#PWR039")
+					(reference "#PWR041")
 					(unit 1)
 				)
 			)
@@ -19698,7 +20207,7 @@
 	)
 	(symbol
 		(lib_id "Analog_Switch:CD4066BM")
-		(at 394.97 231.14 0)
+		(at 370.84 231.14 0)
 		(unit 3)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -19706,7 +20215,7 @@
 		(dnp no)
 		(uuid "4754222e-b247-52a3-87d3-de0df4b3e997")
 		(property "Reference" "U9"
-			(at 394.97 224.79 0)
+			(at 370.84 224.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19715,7 +20224,7 @@
 			)
 		)
 		(property "Value" "CD4066B"
-			(at 394.97 237.49 0)
+			(at 370.84 237.49 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19724,7 +20233,7 @@
 			)
 		)
 		(property "Footprint" "Package_SO:SO-14_3.9x8.65mm_P1.27mm"
-			(at 394.97 231.14 0)
+			(at 370.84 231.14 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -19733,7 +20242,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/cd4066b.pdf"
-			(at 394.97 231.14 0)
+			(at 370.84 231.14 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19794,15 +20303,15 @@
 	)
 	(symbol
 		(lib_id "power:GNDA")
-		(at 379.73 236.22 0)
+		(at 355.6 236.22 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "4bff3f90-3a35-5c02-a346-20bc2e98dbcd")
-		(property "Reference" "#PWR040"
-			(at 379.73 229.87 0)
+		(uuid "600a1932-c3ff-5a73-86ca-3a0205257ab3")
+		(property "Reference" "#PWR042"
+			(at 355.6 229.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19812,7 +20321,7 @@
 			)
 		)
 		(property "Value" "AGND"
-			(at 379.73 242.57 0)
+			(at 355.6 242.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19822,7 +20331,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 379.73 236.22 0)
+			(at 355.6 236.22 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -19831,7 +20340,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 379.73 236.22 0)
+			(at 355.6 236.22 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19840,12 +20349,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "635b96a5-98be-5a6f-8491-7831ed131e72")
+			(uuid "8d2dd274-4c36-5ebd-b8f4-5e2f0e410b85")
 		)
 		(instances
 			(project "rmc-pizz-arco"
 				(path "/a22fb751-4134-552b-b166-193c98de718d"
-					(reference "#PWR040")
+					(reference "#PWR042")
 					(unit 1)
 				)
 			)
@@ -19853,15 +20362,15 @@
 	)
 	(symbol
 		(lib_id "power:GNDA")
-		(at 410.21 236.22 0)
+		(at 386.08 236.22 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "56a9ba89-c329-51ab-8c09-b927c2a3b41d")
-		(property "Reference" "#PWR041"
-			(at 410.21 229.87 0)
+		(uuid "d240bf8a-53e4-5114-ae39-9ac0aca4f68e")
+		(property "Reference" "#PWR043"
+			(at 386.08 229.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19871,7 +20380,7 @@
 			)
 		)
 		(property "Value" "AGND"
-			(at 410.21 242.57 0)
+			(at 386.08 242.57 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19881,7 +20390,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 410.21 236.22 0)
+			(at 386.08 236.22 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -19890,7 +20399,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 410.21 236.22 0)
+			(at 386.08 236.22 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19899,12 +20408,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "c58d694d-4957-5634-9448-90b965770978")
+			(uuid "cb05187b-d25e-5c25-a5f1-c0d5a7ac024f")
 		)
 		(instances
 			(project "rmc-pizz-arco"
 				(path "/a22fb751-4134-552b-b166-193c98de718d"
-					(reference "#PWR041")
+					(reference "#PWR043")
 					(unit 1)
 				)
 			)
@@ -19912,7 +20421,7 @@
 	)
 	(symbol
 		(lib_id "Analog_Switch:CD4066BM")
-		(at 394.97 259.08 0)
+		(at 370.84 259.08 0)
 		(mirror y)
 		(unit 4)
 		(exclude_from_sim no)
@@ -19921,7 +20430,7 @@
 		(dnp no)
 		(uuid "fe1da5c9-20df-51f6-81ae-8d73022651b7")
 		(property "Reference" "U9"
-			(at 394.97 252.73 0)
+			(at 370.84 252.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19930,7 +20439,7 @@
 			)
 		)
 		(property "Value" "CD4066B"
-			(at 394.97 265.43 0)
+			(at 370.84 265.43 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -19939,7 +20448,7 @@
 			)
 		)
 		(property "Footprint" "Package_SO:SO-14_3.9x8.65mm_P1.27mm"
-			(at 394.97 259.08 0)
+			(at 370.84 259.08 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -19948,7 +20457,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/cd4066b.pdf"
-			(at 394.97 259.08 0)
+			(at 370.84 259.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20009,15 +20518,15 @@
 	)
 	(symbol
 		(lib_id "power:GNDA")
-		(at 379.73 264.16 0)
+		(at 355.6 264.16 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "600a1932-c3ff-5a73-86ca-3a0205257ab3")
-		(property "Reference" "#PWR042"
-			(at 379.73 257.81 0)
+		(uuid "3e2e7fb8-97dd-5655-afd9-984afa657db8")
+		(property "Reference" "#PWR044"
+			(at 355.6 257.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20027,7 +20536,7 @@
 			)
 		)
 		(property "Value" "AGND"
-			(at 379.73 270.51 0)
+			(at 355.6 270.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20037,7 +20546,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 379.73 264.16 0)
+			(at 355.6 264.16 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -20046,7 +20555,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 379.73 264.16 0)
+			(at 355.6 264.16 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20055,12 +20564,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "8d2dd274-4c36-5ebd-b8f4-5e2f0e410b85")
+			(uuid "019a118b-40b3-5b50-8597-3ef8119f797d")
 		)
 		(instances
 			(project "rmc-pizz-arco"
 				(path "/a22fb751-4134-552b-b166-193c98de718d"
-					(reference "#PWR042")
+					(reference "#PWR044")
 					(unit 1)
 				)
 			)
@@ -20068,15 +20577,15 @@
 	)
 	(symbol
 		(lib_id "power:GNDA")
-		(at 410.21 264.16 0)
+		(at 386.08 264.16 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "d240bf8a-53e4-5114-ae39-9ac0aca4f68e")
-		(property "Reference" "#PWR043"
-			(at 410.21 257.81 0)
+		(uuid "a5492d0f-0848-55eb-bdcc-5de077172e60")
+		(property "Reference" "#PWR045"
+			(at 386.08 257.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20086,7 +20595,7 @@
 			)
 		)
 		(property "Value" "AGND"
-			(at 410.21 270.51 0)
+			(at 386.08 270.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20096,7 +20605,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 410.21 264.16 0)
+			(at 386.08 264.16 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -20105,7 +20614,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 410.21 264.16 0)
+			(at 386.08 264.16 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20114,12 +20623,752 @@
 			)
 		)
 		(pin "1"
-			(uuid "cb05187b-d25e-5c25-a5f1-c0d5a7ac024f")
+			(uuid "4a553b41-a01b-5cd5-a1a7-b9dc60f24ff7")
 		)
 		(instances
 			(project "rmc-pizz-arco"
 				(path "/a22fb751-4134-552b-b166-193c98de718d"
-					(reference "#PWR043")
+					(reference "#PWR045")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Analog_Switch:CD4066BM")
+		(at 441.96 175.26 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "29bafe00-aa1c-55a5-a699-516bd930069b")
+		(property "Reference" "U10"
+			(at 441.96 168.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "CD4066B"
+			(at 441.96 181.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_SO:SO-14_3.9x8.65mm_P1.27mm"
+			(at 441.96 175.26 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/cd4066b.pdf"
+			(at 441.96 175.26 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ba529fe2-b9a2-54ef-a6d9-b9e890b32ca4")
+		)
+		(pin "2"
+			(uuid "719b2659-ca77-5abe-a4f7-7dbadf0404db")
+		)
+		(pin "3"
+			(uuid "c7f1589e-789f-55b2-85fd-b5933283b538")
+		)
+		(pin "4"
+			(uuid "58faa7e5-4711-5cdc-81c8-77ab29d52497")
+		)
+		(pin "5"
+			(uuid "3ac4e05c-0b30-5baf-8e68-9f9f7a5f51fb")
+		)
+		(pin "6"
+			(uuid "8fdf3199-39ea-56da-ab2b-6d92e5419e25")
+		)
+		(pin "7"
+			(uuid "03d3f41e-8aac-568c-9a48-bcbfe477b61e")
+		)
+		(pin "8"
+			(uuid "66a209a0-e5b9-5eb9-8100-18f21e4a4035")
+		)
+		(pin "9"
+			(uuid "2e4aeaad-975d-5dbd-9dcd-de5cabb4d922")
+		)
+		(pin "10"
+			(uuid "b222d277-9239-577f-b255-a10892468f39")
+		)
+		(pin "11"
+			(uuid "0de6e8f5-c1b2-59e7-83f6-67a4daa09c0f")
+		)
+		(pin "12"
+			(uuid "f03d94a6-0c71-5a6c-8ab2-6fecf377d47a")
+		)
+		(pin "13"
+			(uuid "83ca43bd-1be9-5834-8ea5-158d670b0e19")
+		)
+		(pin "14"
+			(uuid "4390c381-3557-5dba-a37e-9f14f6d2d7db")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "U10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GNDA")
+		(at 457.2 180.34 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "c1edabf8-ba56-567a-b1c8-945308250baf")
+		(property "Reference" "#PWR046"
+			(at 457.2 173.99 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "AGND"
+			(at 457.2 186.69 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 457.2 180.34 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 457.2 180.34 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "87793529-1106-5466-92d4-4c4ffcf090dc")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "#PWR046")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Analog_Switch:CD4066BM")
+		(at 441.96 203.2 0)
+		(mirror y)
+		(unit 2)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "466d2b84-64e1-51b6-ae72-13db1f34cc53")
+		(property "Reference" "U10"
+			(at 441.96 196.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "CD4066B"
+			(at 441.96 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_SO:SO-14_3.9x8.65mm_P1.27mm"
+			(at 441.96 203.2 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/cd4066b.pdf"
+			(at 441.96 203.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "9673e3d0-794e-55fb-904a-c6fffe0e22c9")
+		)
+		(pin "2"
+			(uuid "b8a93198-11da-5f77-aa33-ae0d7aee43a0")
+		)
+		(pin "3"
+			(uuid "a61c62a7-9515-5288-8ad4-eafe38f5dc2c")
+		)
+		(pin "4"
+			(uuid "baabb8e0-d17e-58a5-9944-e1aaf01062df")
+		)
+		(pin "5"
+			(uuid "f5590200-a34f-520a-b486-bb675a15a90e")
+		)
+		(pin "6"
+			(uuid "0a2f853e-4020-5016-9fdf-50561e92cbe3")
+		)
+		(pin "7"
+			(uuid "43d67bb2-dffa-5a41-87a9-b0e77df084a5")
+		)
+		(pin "8"
+			(uuid "33e6284d-0327-5df3-a77e-d0de7ac70a9a")
+		)
+		(pin "9"
+			(uuid "30747b72-8260-57cc-b91b-63573849722b")
+		)
+		(pin "10"
+			(uuid "987df459-2909-5c62-a624-49851e401ed7")
+		)
+		(pin "11"
+			(uuid "334147c2-f6c6-57c4-b696-441f2338f542")
+		)
+		(pin "12"
+			(uuid "8a93bf98-bb21-553f-988e-2619c2e5d16a")
+		)
+		(pin "13"
+			(uuid "070b38cb-beea-5019-b840-d7e094e291c7")
+		)
+		(pin "14"
+			(uuid "7af2cb9d-c1d6-5222-a2ac-dc65f48fb99c")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "U10")
+					(unit 2)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GNDA")
+		(at 457.2 208.28 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "c9b0e2dd-bbdf-59ff-8ebc-17b1b0652268")
+		(property "Reference" "#PWR047"
+			(at 457.2 201.93 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "AGND"
+			(at 457.2 214.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 457.2 208.28 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 457.2 208.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "c83f71fc-9fe6-5784-92d9-b50c2d877f39")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "#PWR047")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Analog_Switch:CD4066BM")
+		(at 441.96 231.14 0)
+		(unit 3)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "9fd4fe30-3d66-5784-83a2-f04a17caf35a")
+		(property "Reference" "U10"
+			(at 441.96 224.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "CD4066B"
+			(at 441.96 237.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_SO:SO-14_3.9x8.65mm_P1.27mm"
+			(at 441.96 231.14 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/cd4066b.pdf"
+			(at 441.96 231.14 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "4af88643-a2eb-5840-aed3-697858d39191")
+		)
+		(pin "2"
+			(uuid "4c1ca9d2-edf7-52f5-98ea-e8c1209345cd")
+		)
+		(pin "3"
+			(uuid "c6949fd6-0571-5938-b072-62623c676323")
+		)
+		(pin "4"
+			(uuid "851a97b5-de7d-50b9-9a20-85f9cb85059f")
+		)
+		(pin "5"
+			(uuid "4fa1ba53-e03b-5bc6-9426-3bfa862661e2")
+		)
+		(pin "6"
+			(uuid "a8ca98dc-2900-5fb6-9f79-9ce46130d5fc")
+		)
+		(pin "7"
+			(uuid "bb35f35d-cf48-5272-b86a-bc7e53f858bf")
+		)
+		(pin "8"
+			(uuid "7368fc59-5582-5a65-9e38-6bd00fa404fb")
+		)
+		(pin "9"
+			(uuid "b7565159-b252-5db6-93a6-6e5497030a66")
+		)
+		(pin "10"
+			(uuid "660a35a7-6aed-52fa-904d-a2baf3a658ce")
+		)
+		(pin "11"
+			(uuid "e912f0a9-cfcb-5dfd-bb74-a68f61adc604")
+		)
+		(pin "12"
+			(uuid "05df38d7-f14c-503e-9513-a7cd5c6404e9")
+		)
+		(pin "13"
+			(uuid "d833b238-5bcf-5566-bb31-5211490b4db8")
+		)
+		(pin "14"
+			(uuid "34febbe9-8440-5a63-bf5c-24c5e4d80258")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "U10")
+					(unit 3)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GNDA")
+		(at 426.72 236.22 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "699cacfb-cd5f-5176-b3ea-9d38cfb32235")
+		(property "Reference" "#PWR048"
+			(at 426.72 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "AGND"
+			(at 426.72 242.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 426.72 236.22 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 426.72 236.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ca482c9f-4570-54fe-925c-d0b249704d01")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "#PWR048")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GNDA")
+		(at 457.2 236.22 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "a72c234c-d8c9-5bf6-b9b4-ead6413bbb56")
+		(property "Reference" "#PWR049"
+			(at 457.2 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "AGND"
+			(at 457.2 242.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 457.2 236.22 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 457.2 236.22 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "affabb11-add2-55dd-b4e9-f691dad8d0b5")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "#PWR049")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Analog_Switch:CD4066BM")
+		(at 441.96 259.08 0)
+		(mirror y)
+		(unit 4)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5c1706bb-585c-5f61-a8b6-e61665faf250")
+		(property "Reference" "U10"
+			(at 441.96 252.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "CD4066B"
+			(at 441.96 265.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_SO:SO-14_3.9x8.65mm_P1.27mm"
+			(at 441.96 259.08 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/cd4066b.pdf"
+			(at 441.96 259.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "a25784ca-19ce-52c5-b1a3-e70db9d58f4e")
+		)
+		(pin "2"
+			(uuid "e21d6c33-ae6c-58e8-9b54-80cf3a70cc19")
+		)
+		(pin "3"
+			(uuid "9885f9ec-03c6-5878-b6a0-583c727e4eab")
+		)
+		(pin "4"
+			(uuid "83279829-be41-56c5-acc6-32dc981cf0b5")
+		)
+		(pin "5"
+			(uuid "cdc3c9b9-d892-5e07-a966-72b7210bee55")
+		)
+		(pin "6"
+			(uuid "9028bd03-ae79-59dd-8da8-2e9a1ec39b63")
+		)
+		(pin "7"
+			(uuid "e20d7108-4974-5e52-bcee-5b3e2d4b1cac")
+		)
+		(pin "8"
+			(uuid "abc89aca-e3fb-52f7-bb4b-e41e84cfcacf")
+		)
+		(pin "9"
+			(uuid "f0ea902d-d73c-56d4-89f5-6793f8483304")
+		)
+		(pin "10"
+			(uuid "b57bb886-8361-59b3-a0a9-690313b6cffc")
+		)
+		(pin "11"
+			(uuid "2957f31b-ab45-5f7f-ba69-3381568a664f")
+		)
+		(pin "12"
+			(uuid "4cd70b33-34fd-5551-a2c2-e0d53d98b5c5")
+		)
+		(pin "13"
+			(uuid "134ae0c9-b2bd-5eff-8036-a5e540747729")
+		)
+		(pin "14"
+			(uuid "c3c84ee3-9de9-5f93-80ed-aaf86a3dbb1f")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "U10")
+					(unit 4)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GNDA")
+		(at 426.72 264.16 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "79bbd72d-9ffb-5180-83be-a0d47d06a27f")
+		(property "Reference" "#PWR050"
+			(at 426.72 257.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "AGND"
+			(at 426.72 270.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 426.72 264.16 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 426.72 264.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "4c72e620-65f4-5072-8852-0e077118ac37")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "#PWR050")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GNDA")
+		(at 457.2 264.16 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7ebe5f4e-cbe6-5e03-bd13-3d71dd463aab")
+		(property "Reference" "#PWR051"
+			(at 457.2 257.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "AGND"
+			(at 457.2 270.51 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 457.2 264.16 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 457.2 264.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "1b74e552-4016-58bf-9032-2d1543f0d580")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "#PWR051")
 					(unit 1)
 				)
 			)
@@ -20349,8 +21598,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "3e2e7fb8-97dd-5655-afd9-984afa657db8")
-		(property "Reference" "#PWR044"
+		(uuid "694a06fb-103b-5d03-8b06-8bb52d8b7c5f")
+		(property "Reference" "#PWR052"
 			(at 327.66 287.02 0)
 			(effects
 				(font
@@ -20389,12 +21638,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "019a118b-40b3-5b50-8597-3ef8119f797d")
+			(uuid "e41e50c0-f1ad-5f13-ba4f-0e1e5165465b")
 		)
 		(instances
 			(project "rmc-pizz-arco"
 				(path "/a22fb751-4134-552b-b166-193c98de718d"
-					(reference "#PWR044")
+					(reference "#PWR052")
 					(unit 1)
 				)
 			)
@@ -20402,7 +21651,7 @@
 	)
 	(symbol
 		(lib_id "Analog_Switch:CD4066BM")
-		(at 394.97 293.37 0)
+		(at 370.84 293.37 0)
 		(unit 5)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -20410,7 +21659,7 @@
 		(dnp no)
 		(uuid "330382fa-cd3d-5ab8-82ad-0465438e1838")
 		(property "Reference" "U9"
-			(at 394.97 287.02 0)
+			(at 370.84 287.02 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20419,7 +21668,7 @@
 			)
 		)
 		(property "Value" "CD4066B"
-			(at 394.97 299.72 0)
+			(at 370.84 299.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20428,7 +21677,7 @@
 			)
 		)
 		(property "Footprint" "Package_SO:SO-14_3.9x8.65mm_P1.27mm"
-			(at 394.97 293.37 0)
+			(at 370.84 293.37 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -20437,7 +21686,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/cd4066b.pdf"
-			(at 394.97 293.37 0)
+			(at 370.84 293.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20498,15 +21747,15 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 415.29 287.02 0)
+		(at 391.16 287.02 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "2bb00518-d51b-5970-b021-9152d54c45d4")
-		(property "Reference" "C901"
-			(at 415.29 280.67 0)
+		(uuid "bb44d6b7-b3a6-5b1c-9d0f-b1e89f3c5ea4")
+		(property "Reference" "C803"
+			(at 391.16 280.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20515,7 +21764,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 415.29 293.37 0)
+			(at 391.16 293.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20524,7 +21773,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 415.29 287.02 0)
+			(at 391.16 287.02 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -20533,7 +21782,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 415.29 287.02 0)
+			(at 391.16 287.02 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20542,15 +21791,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "59dbce12-32b5-5941-8947-6bd682bc2cf5")
+			(uuid "b6fa5a4c-7191-57b5-bf14-c76f6e9bdf9a")
 		)
 		(pin "2"
-			(uuid "7e3966b8-1c0c-5539-8261-4f49fb06755d")
+			(uuid "726d718c-a85a-528d-bdd6-0ee752697eea")
 		)
 		(instances
 			(project "rmc-pizz-arco"
 				(path "/a22fb751-4134-552b-b166-193c98de718d"
-					(reference "C901")
+					(reference "C803")
 					(unit 1)
 				)
 			)
@@ -20558,15 +21807,15 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 415.29 299.72 180)
+		(at 391.16 299.72 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "258a925a-eef8-5b00-aebd-94522672eb9a")
-		(property "Reference" "C902"
-			(at 415.29 293.37 0)
+		(uuid "3b9e3d98-6f47-500b-8547-b6a932938a49")
+		(property "Reference" "C804"
+			(at 391.16 293.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20575,7 +21824,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 415.29 306.07 0)
+			(at 391.16 306.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20584,7 +21833,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 415.29 299.72 0)
+			(at 391.16 299.72 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -20593,7 +21842,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 415.29 299.72 0)
+			(at 391.16 299.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20602,15 +21851,15 @@
 			)
 		)
 		(pin "1"
-			(uuid "bd2cb920-f617-51be-9cf8-62f9fa430a03")
+			(uuid "511c0b2e-f63d-54a1-9dda-d9a77f6aa253")
 		)
 		(pin "2"
-			(uuid "6d3f8818-77c9-5c21-9bce-f1b89ff8d7b5")
+			(uuid "a29a08f6-5f87-54d3-bb5d-62f58cb86edb")
 		)
 		(instances
 			(project "rmc-pizz-arco"
 				(path "/a22fb751-4134-552b-b166-193c98de718d"
-					(reference "C902")
+					(reference "C804")
 					(unit 1)
 				)
 			)
@@ -20618,15 +21867,15 @@
 	)
 	(symbol
 		(lib_id "power:GNDA")
-		(at 422.91 293.37 0)
+		(at 398.78 293.37 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "a5492d0f-0848-55eb-bdcc-5de077172e60")
-		(property "Reference" "#PWR045"
-			(at 422.91 287.02 0)
+		(uuid "96219628-4ebc-540b-bdb0-ab63ad91ff57")
+		(property "Reference" "#PWR053"
+			(at 398.78 287.02 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20636,7 +21885,7 @@
 			)
 		)
 		(property "Value" "AGND"
-			(at 422.91 299.72 0)
+			(at 398.78 299.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20646,7 +21895,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 422.91 293.37 0)
+			(at 398.78 293.37 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -20655,7 +21904,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 422.91 293.37 0)
+			(at 398.78 293.37 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -20664,12 +21913,287 @@
 			)
 		)
 		(pin "1"
-			(uuid "4a553b41-a01b-5cd5-a1a7-b9dc60f24ff7")
+			(uuid "1d032364-1d48-5b9d-a7bd-026f3bfcda1f")
 		)
 		(instances
 			(project "rmc-pizz-arco"
 				(path "/a22fb751-4134-552b-b166-193c98de718d"
-					(reference "#PWR045")
+					(reference "#PWR053")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Analog_Switch:CD4066BM")
+		(at 441.96 293.37 0)
+		(unit 5)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ed110802-c33b-54a0-99f0-2b48c17bf0ec")
+		(property "Reference" "U10"
+			(at 441.96 287.02 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "CD4066B"
+			(at 441.96 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Package_SO:SO-14_3.9x8.65mm_P1.27mm"
+			(at 441.96 293.37 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/cd4066b.pdf"
+			(at 441.96 293.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "94caca93-fc2f-5566-8668-cfb1132f45df")
+		)
+		(pin "2"
+			(uuid "ca0900fd-d0f0-579e-a72a-eb88776bda93")
+		)
+		(pin "3"
+			(uuid "f706e777-da6b-5cbc-9d28-1e3908752bc9")
+		)
+		(pin "4"
+			(uuid "63aeb556-dc61-5bce-b2c4-816d4708d83a")
+		)
+		(pin "5"
+			(uuid "73bc2e49-1779-5ec2-b235-b7bb91c67cdd")
+		)
+		(pin "6"
+			(uuid "30f0d95e-ee71-5d22-bf77-49dc7b162616")
+		)
+		(pin "7"
+			(uuid "6f4a6f9d-d12a-544c-9446-dccd072fb62d")
+		)
+		(pin "8"
+			(uuid "0a463eff-af5a-59aa-b43a-0fccd9b37814")
+		)
+		(pin "9"
+			(uuid "90fc6502-52fe-5538-938e-7e0fcf54420b")
+		)
+		(pin "10"
+			(uuid "9a31b7e6-632c-5be6-bf8f-c46e7998579c")
+		)
+		(pin "11"
+			(uuid "f81b88ad-4d8c-550a-9a3a-c0e3f64617d5")
+		)
+		(pin "12"
+			(uuid "fdd3fbc1-afb2-57d7-951f-34fc7570ee72")
+		)
+		(pin "13"
+			(uuid "b09e8cf5-857f-576c-bdd3-85fe13dc6b2d")
+		)
+		(pin "14"
+			(uuid "4893d71c-6d47-5613-b39d-6d7126f2a488")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "U10")
+					(unit 5)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 462.28 287.02 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "984fdab4-a595-5d5a-b33c-f3799023d98e")
+		(property "Reference" "C805"
+			(at 462.28 280.67 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100n"
+			(at 462.28 293.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 462.28 287.02 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 462.28 287.02 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "b91cb88b-0e0f-5766-91c3-01f25573b401")
+		)
+		(pin "2"
+			(uuid "689ada64-0f87-59d2-ba9a-741626684423")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "C805")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 462.28 299.72 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "2be6ca5a-b1dc-5df3-a6f7-d3fb29b4c51e")
+		(property "Reference" "C806"
+			(at 462.28 293.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100n"
+			(at 462.28 306.07 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 462.28 299.72 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 462.28 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f90686d8-fa4f-5a53-9136-2387dde3be8a")
+		)
+		(pin "2"
+			(uuid "b3775802-649c-53ca-9936-c3dbb7c0ee93")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "C806")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GNDA")
+		(at 469.9 293.37 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "77be41a2-77fd-572a-9562-7b82d71ac57f")
+		(property "Reference" "#PWR054"
+			(at 469.9 287.02 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Value" "AGND"
+			(at 469.9 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 469.9 293.37 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 469.9 293.37 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "c0d253e4-7291-5552-9bc7-1088d76f3422")
+		)
+		(instances
+			(project "rmc-pizz-arco"
+				(path "/a22fb751-4134-552b-b166-193c98de718d"
+					(reference "#PWR054")
 					(unit 1)
 				)
 			)
@@ -20941,8 +22465,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "c1edabf8-ba56-567a-b1c8-945308250baf")
-		(property "Reference" "#PWR046"
+		(uuid "8176315b-e1da-5f99-b6c6-fbcc7a6c386a")
+		(property "Reference" "#PWR055"
 			(at 515.62 182.88 0)
 			(effects
 				(font
@@ -20981,12 +22505,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "87793529-1106-5466-92d4-4c4ffcf090dc")
+			(uuid "ac604458-bdc3-5ee1-94ea-f3dab5da5f2c")
 		)
 		(instances
 			(project "rmc-pizz-arco"
 				(path "/a22fb751-4134-552b-b166-193c98de718d"
-					(reference "#PWR046")
+					(reference "#PWR055")
 					(unit 1)
 				)
 			)
@@ -21060,8 +22584,8 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(uuid "c9b0e2dd-bbdf-59ff-8ebc-17b1b0652268")
-		(property "Reference" "#PWR047"
+		(uuid "b7f4c699-d0b7-5c12-b026-0564a7d8d841")
+		(property "Reference" "#PWR056"
 			(at 533.4 175.26 0)
 			(effects
 				(font
@@ -21100,12 +22624,12 @@
 			)
 		)
 		(pin "1"
-			(uuid "c83f71fc-9fe6-5784-92d9-b50c2d877f39")
+			(uuid "c544ef78-09d0-5807-95f5-03e3f321e3cf")
 		)
 		(instances
 			(project "rmc-pizz-arco"
 				(path "/a22fb751-4134-552b-b166-193c98de718d"
-					(reference "#PWR047")
+					(reference "#PWR056")
 					(unit 1)
 				)
 			)

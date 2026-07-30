@@ -292,20 +292,17 @@ def switch_section(sch, origin):
     def at(x, y):
         return (ox + x, oy + y)
 
-    columns = {"U8": 0.0, "U9": 95.25}
+    packages = ("U8", "U9", "U10")
+    columns = {ref: position * 71.12 for position, ref in enumerate(packages)}
     # Units 2 and 4 of a 4066 carry their signal pins the opposite way round
-    # to units 1 and 3; mirroring them makes all eight draw identically, with
+    # to units 1 and 3; mirroring them makes all twelve draw identically, with
     # the switched node on the left and ground on the right.
-    placements = [
-        ("U8", 1, 1, 2, 13, "SWN1", None),
-        ("U8", 2, 3, 4, 5, "SWN2", "y"),
-        ("U8", 3, 8, 9, 6, "SWN3", None),
-        ("U8", 4, 10, 11, 12, "SWN4", "y"),
-        ("U9", 1, 1, 2, 13, "SWN5", None),
-        ("U9", 2, 3, 4, 5, "SWN6", "y"),
-        ("U9", 3, 8, 9, 6, None, None),
-        ("U9", 4, 10, 11, 12, None, "y"),
-    ]
+    placements = []
+    for position, ref in enumerate(packages):
+        placements.append((ref, 1, 1, 2, 13, f"SWN{position * 2 + 1}", None))
+        placements.append((ref, 2, 3, 4, 5, f"SWN{position * 2 + 2}", "y"))
+        placements.append((ref, 3, 8, 9, 6, None, None))
+        placements.append((ref, 4, 10, 11, 12, None, "y"))
 
     for ref, unit, pin_a, pin_b, ctrl, net, mirror in placements:
         x = columns[ref]
@@ -328,9 +325,10 @@ def switch_section(sch, origin):
         sch.wire(part.pin(pin_b), at(x + 15.24, y), at(x + 15.24, y + 5.08))
         sch.power("power:GNDA", *at(x + 15.24, y + 5.08), value="AGND")
 
-    # Supply units and decoupling for both switch packages.
+    # Supply units and decoupling for each switch package.
     for offset, (ref, caps) in enumerate((("U8", ("C801", "C802")),
-                                          ("U9", ("C901", "C902")))):
+                                          ("U9", ("C803", "C804")),
+                                          ("U10", ("C805", "C806")))):
         x = columns[ref]
         y = 118.11
         supply = sch.place(ref, "Analog_Switch:CD4066BM", "CD4066B", *at(x, y),
