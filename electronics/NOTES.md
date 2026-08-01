@@ -13,7 +13,14 @@ Poly-Drive II expects to see.
 - **PZT 1 (red)** goes straight to `OUT`, unbuffered.
 - **PZT 2 (white)** is loaded by 3M3 to ground, filtered by 1k/100p
   (corner ≈1.6 MHz), buffered at unity gain, then passed through a
-  first-order all-pass, then summed into `OUT` through 220p ‖ 1n5 = 1.72 nF.
+  first-order all-pass, then summed into `OUT` through a single **1.8 nF**.
+
+RMC have since confirmed the element's own capacitance is **1700 pF**, which
+is what the summing capacitor is matching: the red element works into it
+directly, so equal capacitance means equal weighting at the summing node. That
+is why the six must match each other — it is string balance, not tolerance
+fussiness. Against the 3M3 bias resistor, 1700 pF puts the input corner at
+**28 Hz**, well below the bottom string at 73 Hz.
 
 The all-pass RC corner is 1/(2π·47k·100p) ≈ **34 kHz**, well above the audio
 band. In band this stage is therefore a **polarity flip**, not a gradual phase
@@ -30,91 +37,143 @@ Nothing in RMC's circuit needed changing.
 
 ## What was added, and why
 
-The drawing specifies a single floating +12 V supply but is drawn around a
-bipolar ground, so:
+The drawing shows one channel and leaves the supply and the switching open.
+Only two things were added, and both are smaller than they once were:
 
-- **Mid-rail split.** `AGND` — the ground in RMC's drawing — is generated at
-  half supply by a 10k/10k divider buffered by U7A, giving the amplifiers
-  ±6 V. Because the supply floats this costs nothing and **no coupling
-  capacitors are needed anywhere in the signal path**. R704 (10R) isolates the
-  bypass capacitance from the buffer's output while keeping it inside the
-  feedback loop. U7B is a spare half, parked as a unity buffer.
 - **Switching.** The drawing shows one switch per channel. Bussing six
   channels to a single mechanical SPST would short them all together when
-  open, so each channel gets its own contact: six CD4066B analog switch cells
-  driven from one control line. On-resistance ~100 Ω against 47 k is −54 dB,
-  and the switched node carries no DC, so there is no click. R701/C703 slow
-  the transition to about 10 ms.
+  open, so each channel gets its own contact: six CD4066B cells driven from
+  one control line. On-resistance ~100 Ω against 47 k is −54 dB, and the
+  switched node carries no DC, so there is no click. R701/C701 slow the
+  transition to about 10 ms.
 
-  These sit in **three** packages (U8–U10) using only the A and B cells of
-  each, not two packages using all four. On an SO-14 the A and B cells have
-  both signal pins on the left side; C and D have theirs on the right. The
-  channels arrive from the left and the control line comes down the right, so
-  restricting to A and B keeps the two apart entirely — with C and D in use
-  they have to cross, and there is nowhere left to put the crossing. Two spare
-  cells per package is a cheap price. Each package also sits beside the pair of
-  channels it serves, so the switched-node runs stay short.
-- **Protection and decoupling.** Resettable fuse, series Schottky for reverse
-  polarity, a 15 V TVS across the rail, bulk and per-package bypassing.
+  These sit in **two** packages, U4 and U5, using three cells of each with one
+  spare. An earlier revision used three packages restricted to the A and B
+  cells, on the theory that keeping signal and control apart mattered; RMC
+  pointed out that this is wrong — one side of every cell is grounded and the
+  control lines are all paralleled, so there is very little to route around
+  the package. Each package sits beside the three channels it serves, and the
+  spare cell in each is parked with its signal pins on AGND and its control on
+  V−.
+- **Decoupling.** Four 4.7 µF/25 V capacitors, a V+→AGND and a V−→AGND pair at
+  each end of the rails, exactly as RMC specified. This replaces the eighteen
+  local capacitors an earlier revision carried: the In1/In2 plane pair already
+  supplies the local V+-to-AGND decoupling those were doing.
 
-## Supply requirement — important
+**What is no longer here at all:** the mid-rail buffer and its divider, the
+resettable fuse, the series Schottky, the TVS, and the whole power section.
+The supply arrives ready-made from the Poly-Drive II, and the deletion of the
+mid-rail buffer in particular is what makes the grounding rule below free
+rather than expensive — it was the one real source of DC in the ground
+return.
 
-> **Chosen arrangement: a 9 V onboard rechargeable pack, inside the
-> instrument.** RMC's drawing specifies a 12 V wallwart; the board accepts
-> either, and the reasoning for taking the battery is below.
+## Supply — read this before wiring anything
 
-**9–15 V DC, and it must float** (no connection to mains earth). Floating is
-the constraint that actually matters: the mid-rail buffer makes signal ground
-half the supply, so an earth-referenced source would short it. A battery is
-inherently isolated, so an onboard pack satisfies this for free — it is a
-better source here than a wallwart, not a worse one.
+> **This board has no supply of its own.** No battery, no power section, no
+> regulator, no protection. It is powered entirely by the Poly-Drive II, over
+> the same DIN-8 that carries the audio.
 
-RMC's drawing says 12 V, but nothing on the board requires it:
+**±4.5 V arrives on DIN pins 7 and 8, with the shell as ground.** RMC settled
+this over three rounds and recommend it explicitly: power management happens
+only in the Poly-Drive II, and the instrument electronics are slaved to it.
 
-| Part | Range |
+| | |
 | --- | --- |
-| OPA2191 ×7 | 4.5–36 V |
-| CD4066B ×3 | 3–18 V |
-| C701 bulk | 25 V rated |
-| D702 SMAJ15A | 15 V standoff, never conducts in range |
+| **Pin 7** | **+4.5 V** |
+| **Pin 8** | **−4.5 V** |
+| Shell / shield | ground, both audio and DC |
+| Source | a 9 V battery in the PD2 through a transistor rail splitter |
+| Our draw | ~2 mA, of an under-6 mA total shared with the PD2's own 3.5 mA |
 
-So a **9 V onboard rechargeable pack works as supplied**, with no component
-change. It costs about **2.6 dB** of headroom against 12 V (±4.5 V rails
-rather than ±6 V). Two things make that easier than it sounds: there is no
-gain anywhere in the signal path — the buffer is unity and the all-pass is
-±1 — so the headroom needed is the white element's own peak output, not a
-multiple of it; and **PZT 1 never passes through an op-amp**, running straight
-to the DIN, so it cannot clip whatever the rails are doing. Only the PZT 2
-contribution is at risk. See question 6 below.
+**Pins 7 and 8 are spare preamp inputs as the PD2 ships**, and they have to be
+disconnected from the preamp before they can carry power. **RMC do that
+themselves when they assemble our unit** — it is not an aftermarket job on
+someone else's hardware, and there is nothing for us to open.
 
-**Do not run two packs in series at 18 V.** That is the CD4066B's absolute
-maximum with no margin, and D702 would sit in conduction. It needs a
-higher-voltage switch or an LDO down to 12 V — a respin, not a relabel.
+### Polarity — the fault that destroys the board
 
-**Do not boost 9 V to 12 V.** A switching converter beside a 3M3-loaded piezo
-front end puts noise in the worst possible place to buy 2.6 dB.
+**There is deliberately no reverse-protection diode.** A series Schottky per
+rail would cost about 0.6 V of a 9 V total supply, roughly 0.6 dB of headroom
+this design does not have to spare. A loom built backwards therefore puts 9 V
+backwards across every op-amp and destroys the board.
 
-Total draw is about **2.1 mA** — fourteen OPA2191 halves at 140 µA each, plus
-45 µA for the mid-rail divider and a negligible amount for the switches. On a
-9 V pack that is a very long time between charges. R702/R703 are 100k rather
-than the more usual 10k specifically to keep that figure down; the trade is
-that the mid-rail reference takes about 2 s to settle at switch-on.
+The mitigation is procedural, not electrical: **pin 7 = +4.5 V, pin 8 =
+−4.5 V**, printed on the silkscreen, repeated here, in `ENCLOSURE.md` and in
+`fab/ORDER.md`. **Continuity-check the loom from the DIN plug to J7 before
+first power-up.** The polarity is ours to define — RMC called their own pin
+7 = + "arbitrary… just my knee-jerk response" — so it is the board that sets
+the convention and the loom that follows it.
+
+### Headroom, and what happens when it runs out
+
+The rails allow about **±4.35 V** of swing. There is no gain anywhere on the
+board — the buffer is unity and the all-pass is ±1 — so the requirement is
+simply the white element's own peak output.
+
+**RMC's answer (2026-08-01) is that this is fine, and that clipping on hard
+pizzicato is acceptable when it happens.** There is no single peak figure to
+quote, because output depends on excitation, string tension and break angle:
+
+- **Arco cannot clip.** A bowed attack is a short noisy fade-in with no large
+  percussive transient, and out of phase the two elements cancel vertical
+  force variations at the summing node.
+- **Pizz can, and it is inaudible.** In phase, vertical sensitivity is at its
+  maximum and a picking transient may saturate the buffer. But the red element
+  bypasses the electronics entirely and dominates for those milliseconds, so
+  what you get is an extremely short change in polar pattern, not a click or
+  a buzz.
+
+**This rests on the amplifier not latching up, which was checked rather than
+assumed.** OPA191/2191/4191 datasheet SBOS701D §8.3.3: the family has internal
+phase-reversal protection, and input signals beyond the rails do not cause
+phase reversal — the output simply limits into the appropriate rail.
+
+One consequence worth knowing when servicing: the datasheet's absolute maximum
+on an input pin is only 0.5 V beyond the rail, with a ±10 mA input current
+limit. **R01, the 1 kΩ stopper in each channel, is what keeps the input clamps
+inside that rating** — even 5 V of overdrive draws 5 mA, half the limit. It was
+put there as a stopper and it is also what makes accepting clipping safe.
+**Do not reduce it.**
+
+If clipping ever does prove audible, the fix needs no respin: a capacitor in
+parallel with R02 (3M3) divides against the element's own 1700 pF and
+attenuates the white signal into the buffer, and increasing C04 loads the red
+element correspondingly to restore the balance. Component values only.
 
 ## Board
 
-- 88 × 112 mm, 4 layers, all SMD 0805 / SOIC, hand-solderable.
+- **78.8 × 81.3 mm, 4 layers.** 80 placements: 72 SMD (1206 passives, SOIC-14
+  and SO-14 packages) and 8 through-hole 2.54 mm pin headers.
 - **Stackup:** F.Cu signals · In1.Cu solid AGND plane · In2.Cu solid V+ plane ·
-  B.Cu V− pour and jumpers. Four layers rather than two is what keeps this
-  tractable: every supply and ground pad reaches its rail through a single via,
-  and the high-impedance piezo traces run over unbroken ground.
-- Six identical channel tiles down the left at 14 mm pitch, each with its own
-  3-pin pickup header; DIN header, the three switch packages and the toggle
-  down the right; supply along the bottom.
+  B.Cu signals. Four layers rather than two is what keeps this tractable:
+  every supply and ground pad reaches its rail through a single via, and the
+  high-impedance piezo traces run over unbroken ground.
+- **V− is not a plane.** At about 2 mA it never needed one, and a B.Cu pour was
+  this project's worst failure mode — fragmenting it produced unconnected items
+  in parts of the board nowhere near the cause. It is routed like any other
+  net, and B.Cu is a second signal layer.
+- **Three blocks** down the left, each one OPA4191 quad serving two channels,
+  with the two channels mirrored above and below it. Each has its own 3-pin
+  pickup header. Then a corridor for the six outputs and six switched nodes,
+  the two switch packages and the control network, and the tail connectors laid
+  flat along the bottom.
 - Per-saddle headers J1–J6 are wired **1 = shield, 2 = white, 3 = red**.
 
-The size is set by six channels of through-hole-headered discrete circuitry.
-If it has to be smaller, say so — reflowing to two columns of three, or moving
-to 0402, would get it well under 70 × 70 mm.
+**1206 passives throughout, not 0805.** This is RMC's advice — "whenever you
+need to pass 2 lines side-by-side between a component's terminals, you can use
+a 1206 size component and that way you can eliminate a lot of vias" — applied
+uniformly. Measured clear gap between pads: 0805 gives 0.80–0.90 mm, 1206 gives
+**1.80 mm**. At 0.65 mm lane pitch that is one lane against two, and on this
+board a 1206's own pad gap is where most of the routing crosses from one side
+of a channel to the other. Going bigger bought more than going smaller ever
+did.
+
+**The board is not dense, and that is the point.** Land utilisation is about
+14%, lower than either previous revision. What sets the size is not area for
+parts but room for lanes — which is why the right-hand column sits 2 mm
+further out than the parts need and the tail connector 0.5 mm lower than it
+has to. Both were spent on measured crossings. A smaller number from an
+unroutable placement is not a smaller board.
 
 ## Installing it
 
@@ -131,20 +190,20 @@ Every pin number below comes from `design.py`, which is the source of truth;
         |
         +-- red -------------------------------------+   never sees an op-amp
         |                                             |
-        +-- white -> 3M3 bias -> 1k/100p -> buffer -> +-1 --+ via 1.72 nF
+        +-- white -> 3M3 bias -> 1k/100p -> buffer -> +-1 --+ via 1.8 nF
                                      (polarity from J8)     v
                                                         OUT (1 of 6)
 
-   6 x OUT + audio ground
+   6 x OUT + ground + the two supply rails, all on the same connector
         v
-   J7, 8-way --> instrument DIN-8 socket --> RMC cable --> Poly-Drive II
+   J7, 9-way --> instrument DIN-8 socket --> RMC cable --> Poly-Drive II
 ```
 
 Two things follow from this that are easy to get wrong:
 
 - **The red element never passes through the electronics.** It runs straight
   from the saddle to the DIN. Only the white one is buffered and
-  polarity-switched, then summed back into the red through 1.72 nF.
+  polarity-switched, then summed back into the red through 1.8 nF.
 - **The board applies no gain, and its output is still piezo-like** -- high
   impedance, with no load resistor on board. That is deliberate: it is what
   the Poly-Drive II expects to see, and the Poly-Drive supplies the load.
@@ -156,76 +215,96 @@ Two things follow from this that are easy to get wrong:
 | | Pin 1 | Pin 2 | Pin 3 | |
 | --- | --- | --- | --- | --- |
 | **J1–J6** saddle 1–6 | shield | white | red | |
-| **J7** to DIN-8 | pins 1–6 = channels 1–6 | 7 = audio ground | 8 = reserved | see question 2 |
-| **J8** pizz/arco toggle | switch | + rail | | DC only, no audio |
-| **J9** battery | + | − | | 9–15 V, floating |
+| **J7** to DIN-8 | pins 1–6 = channels 1–6 | 7 = **+4.5 V**, 8 = **−4.5 V** | 9 = shell / ground | check polarity before power-up |
+| **J8** pizz/arco toggle | switch | control | | DC only, no audio |
 
-Switch **closed** grounds the all-pass and inverts PZT 2 relative to PZT 1.
-Which of those is "pizz" and which "arco" is question 3 for RMC.
+**J7 has nine pins for an eight-pin DIN.** Pins 1–8 are the DIN's own pins and
+pin 9 is the shell, which is the ground connection.
+
+Switch **closed** grounds the all-pass and inverts the white element relative
+to the red. RMC have confirmed which way round that is:
+
+| Toggle | Control line | CD4066 | All-pass | Elements | Mode |
+| --- | --- | --- | --- | --- | --- |
+| closed | +4.5 V via 20 kΩ | ON | −1 | in phase | **PIZZ** (picking) |
+| open | −4.5 V via 1 MΩ | OFF | +1 | out of phase | **ARCO** (bowing) |
+
+In-phase is for picking, because it maximises vertical sensitivity;
+out-of-phase is for bowing, because it maximises horizontal sensitivity.
+
+> **The rest state is ARCO.** The control line is pulled to the negative rail
+> through 1 MΩ, so that is what the instrument does with the toggle
+> disconnected, the loom broken, or the switch not yet wired. If a newly built
+> instrument sounds like it is permanently in arco, suspect the toggle wiring
+> before suspecting the board.
 
 ### Grounding — read before wiring
 
-> **The audio ground is the mid-rail, not the battery negative.**
->
-> The saddle shields (J1–J6 pin 1) and DIN pin 7 sit at *half the supply* —
-> about +4.5 V above the battery's negative terminal on a 9 V pack.
->
-> **Do not bond battery negative to the shields, to DIN ground, or to any
-> instrument earth.** That shorts U7A's output through R704 (10 Ω), demanding
-> roughly 450 mA. The mid-rail collapses and the board stops working
-> correctly — a baffling fault if you are not expecting it.
+> **Ground is the DIN shell, and there is nothing else.** No mid-rail, no
+> battery negative, no second ground. RMC: "Shell/Shield is Ground — no need
+> for multiple Grounds here."
 
-Put positively: the Poly-Drive's ground, arriving over the DIN cable, is what
-anchors the board's audio ground, and the battery floats on top of it. That is
-the whole reason the supply has to be isolated — and why a battery suits this
-better than a wallwart, being isolated by construction.
+This is a real simplification over the previous revision, where audio ground
+was a buffered mid-rail and bonding it to anything was a serious fault. That
+buffer is gone with the power section.
+
+What replaces it is a design rule, and it is one that must not be broken later:
+
+> **No DC path from either rail to AGND anywhere on the board.**
+
+The reason is structural. The PD2's ground is the midpoint of a transistor
+rail splitter, and it reaches this board down the DIN shell — the same single
+conductor that carries all six string returns. Any DC imbalance flows in that
+one conductor, straight through the audio return path. RMC put it as "the
+current flowing in the Ground terminal is only related to the Audio signals",
+and asked that the drain on the two rails be symmetrical.
+
+Audited against what is built, the rule holds: the only things on AGND are the
+six saddle shields, the six 3M3 bias resistors, the RF and all-pass capacitors,
+the grounded side of each 4066 cell, C701 and the four bypass capacitors. Total
+DC into ground is leakage only. Everything else runs rail-to-rail — the
+OPA4191s draw V+ to V− through the die, and **the CD4066 has no ground pin at
+all** (pin 7 is Vss = −4.5 V, pin 14 is Vdd = +4.5 V).
+
+**What this forbids, if the board is ever modified:** no power LED, no
+rail-to-ground divider, no single-ended pull-up, no asymmetric bypass. All four
+are the sort of thing that looks harmless and puts DC in the audio return.
 
 The toggle on J8 carries DC only, so its wiring is uncritical; just keep its
 terminals clear of anything grounded.
 
 ### Switching it off
 
-**There is no power switch on the board.** J9 runs straight through F701 and
-D701 to the rails, so the board is live whenever a battery is connected —
-played or not.
+**There is nothing to switch off here.** The board has no supply of its own —
+it is live exactly when the Poly-Drive II is live, and goes away with it.
+Whatever power switching the PD2 has is the power switching this instrument
+has, and that is now RMC's side of the connector.
 
-At about **2.1 mA**, a typical 500 mAh 9 V pack is flat in roughly **ten
-days** of being left connected. Something has to break that circuit:
+The earlier revision needed a switch in the battery lead, because a pack left
+connected went flat in about ten days. That problem left with the battery.
 
-- a switch in the battery lead — simplest, and it can be anywhere convenient;
-- a switched socket, if RMC offer one for the DIN-8 (worth asking alongside
-  the pinout question);
-- or unplugging the pack, which works but relies on remembering.
+### If the PD2's battery goes flat
 
-Guitars normally get this for free from a TRS output jack whose ring contact
-breaks the battery when the lead is pulled. A DIN socket does not do that, so
-it is a decision to make while the instrument is open. No board change is
-involved either way.
+**Everything stops, including the passive path.** This is a change from the
+previous revision and worth stating plainly, because the old failure signature
+is now completely wrong.
 
-### If the battery goes flat
+Previously the red element reached the DIN through copper alone and survived a
+dead battery, so a flat battery gave a thinner, quieter instrument with the
+pizz/arco switch doing nothing. **That no longer applies.** The battery now
+lives in the Poly-Drive II, which is the preamp the whole instrument feeds; if
+it is flat there is no output at all, from either element, whatever this board
+is doing.
 
-The instrument does **not** go silent. The red element of each saddle reaches
-the DIN through copper alone — no op-amp, no analog switch, nothing in series
-— and its return runs shield → J pin 1 → ground plane → DIN pin 7, equally
-passive. That loop survives a dead battery intact.
+**There is no low-battery warning, and there cannot be one.** RMC specify a
+regulated USB-rechargeable pack, which holds 9 V for its whole life and then
+falls off a cliff — so a preamp watching battery voltage has nothing to watch.
+Their answer is a habit rather than a circuit: **charge it once a week.** At
+about 70 hours of playing per charge that covers a week comfortably, and
+charging takes under an hour.
 
-What is lost:
-
-- **The white element entirely**, since its buffer is dead. You hear the red
-  element alone, and the pizz/arco switch does nothing.
-- **Some level on the red element too.** With the op-amp unpowered its output
-  no longer drives `C04 ‖ C05`; those 1.72 nF stop being a source and become a
-  shunt load across the output. The red element then works into that extra
-  capacitance and loses level by the divider against its own — how much
-  depends on the element capacitance, question 5.
-
-So the signature to recognise is **suddenly thinner and quieter, with the
-pizz/arco switch having no effect**.
-
-The brown-out on the way down is less pleasant than the flat state. The
-OPA2191 needs 4.5 V and is undefined below it, so expect noise and distortion
-rather than a clean fade — a protected pack that cuts off abruptly is kinder
-here than an alkaline sagging through a concert.
+This is worth telling whoever plays the instrument, because it is the one
+maintenance task the design has and the one failure mode with no warning.
 
 ### Alternative: an outboard enclosure
 
@@ -252,24 +331,31 @@ Moving the *board* out is harder:
 - **It relocates the highest-impedance node in the design.** The white
   element's 3M3 load and its buffer would move to the far end of that cable.
   Cable capacitance forms a divider against the element — how much loss
-  depends on the element's own capacitance, which is question 5 — and twelve
+  depends on the element's own capacitance, now known to be 1700 pF — and twelve
   high-impedance lines sharing a multicore risk crosstalk, which attacks
   precisely the per-string separation a hex system exists to provide. Roland
   GK cables work because the GK pickup buffers *at the instrument*, for this
   reason.
-- **Pedal power is not automatically isolated.** Daisy-chain supplies share a
-  sleeve usually tied to audio ground, which would short the mid-rail buffer.
-  A battery or a genuinely isolated output only — or a charge-pump respin for
-  a true ±9 V ground, which would also recover the headroom lost at 9 V.
+- **Powering it is now the hard part, not the easy part.** The board's rails
+  arrive from the Poly-Drive II over the DIN, so an outboard box would either
+  have to carry those rails down the same cable that is already full of
+  high-impedance element signals, or generate its own — which is exactly the
+  local power management RMC have twice recommended against.
 
 ## Status
 
-- Schematic: **ERC clean.** The 18 remaining warnings are all one benign case
-  (a 4066 signal pin tied to ground, which is intended).
+- Schematic: **ERC clean.** The 10 remaining warnings are all one benign case
+  — a CD4066 bidirectional pin meeting a power flag, which is what those pins
+  are.
 - The generated schematic is read back through KiCad and compared against
-  `design.py` net by net — 58 nets, 330 pin connections, exact match. See
-  `verify.py`.
-- Board: **fully routed, 0 unconnected items, DRC clean.**
+  `design.py` net by net — **53 nets, 233 pin connections, exact match**. See
+  `verify.py`, which also checks that every footprint on the board is linked
+  back to its symbol.
+- Board: **fully routed, 0 DRC violations, 0 unconnected items.** Routing is
+  entirely in `gen_pcb.py`; no autorouter is involved.
+- Three checks the build cannot make: open the project in KiCad once and
+  confirm no symbol has a broken library link; re-audit AGND by hand against
+  the list under "Grounding"; and confirm `design.NO_CONNECT` is still empty.
 
 ## Opening it in KiCad
 
@@ -313,46 +399,58 @@ For a stencil, add `F.Paste` to the `--layers` list in `build.sh`. For
 assembly rather than a bare board, send `fab/rmc-pizz-arco-bom.csv` and
 `fab/rmc-pizz-arco-pos.csv` as well.
 
-## Questions for RMC
+## Questions for RMC — all answered
 
-**What we are building, so the answers land in the right context:** the board
-is mounted **inside the instrument**, powered by a **9 V onboard rechargeable
-pack** — floating, drawing about **2.1 mA** — with the six channels leaving on
-the DIN-8 to an outboard Poly-Drive II. **Not a wallwart.** Where the drawing
-specifies 12 V we have checked every part and the circuit is happy anywhere in
-9–15 V; 9 V costs about 2.6 dB of headroom, which question 3 is about.
+Four rounds of correspondence, 2026-07-30 to 2026-08-01. Nothing is
+outstanding. The full text of every reply is kept verbatim in `STATE.md`,
+because every paraphrase is an interpretation; this is the summary.
 
-1. **DIN-8 pinout.** J7 is currently 1–6 = channels 1–6, 7 = ground,
-   8 = reserved. Please confirm the pin assignment the Poly-Drive II expects.
-2. **DIN pin 8 — is it used?** A ground, a shield, or something else? JP1
-   (unfitted) can tie it to ground if that is what it wants.
+| Asked | Answered |
+| --- | --- |
+| **DIN-8 pinout, and is pin 8 used?** | Pins 1–6 are the six string signals, **pins 7 and 8 can carry bipolar power**, shell/shield is ground. They are spare preamp inputs as shipped and must be disconnected from the preamp first — which RMC do at assembly. |
+| **Supply** | ±4.5 V from a 9 V battery in the PD2 through a transistor rail splitter. Power management stays in the PD2; the instrument electronics are slaved to it. No local supply. |
+| **Element capacitance** | **1700 pF.** Against 3M3 that is a 28 Hz corner, well below the bottom string. |
+| **The 220 pF ‖ 1.5 nF pair** | It was approximating that 1700 pF. Collapses to a single capacitor; **1.8 nF C0G**, matched across the six. |
+| **Peak open-circuit output on hard pizzicato** | No single figure — it is instrument-specific. Arco cannot clip; pizz can, and it is inaudible. See "Headroom" above. |
+| **Which way round is pizz and which arco?** | In-phase (switch closed) is for picking, out-of-phase for bowing. |
+| **Does the DIN-8S socket switch?** | It does not — the contacts are fork-type and accept a pin. Moot now: there is no battery here to switch. |
+| **Inverter resistor tolerance** | ±1%. |
+| **Decoupling** | A pair of 4.7 µF/25 V at each end of the rails, replacing our eighteen local capacitors. |
+| **Three CD4066 packages or two?** | Two. One side of every cell is grounded and the control lines are paralleled, so there is very little to route. |
 
-   If it carries a **supply**, we could only use it if that supply is
-   *isolated from DIN ground*. Our audio ground is the mid-rail — pin 7 — so a
-   rail referenced to pin 7 would give us a positive supply and no negative
-   one for signals to swing into. Using it would mean adding a negative-rail
-   generator and re-biasing, which is a respin rather than a wiring change.
-   We only need about 2.1 mA, so it is worth asking.
-3. **Element specification: capacitance and peak output.** Two numbers, both
-   from the same part:
-   - **Capacitance**, because it sets the input high-pass corner against the
-     3M3 bias resistor. For the bottom string of a gamba (D2, 73 Hz) we want
-     it comfortably over 1 nF.
-   - **Peak open-circuit output** on a hard pizzicato, because it decides
-     whether ±4.5 V rails from a 9 V pack are comfortable or marginal. The
-     board applies no gain, so the requirement is simply the element's own
-     peak. We have assumed well under 4 V. If it is higher, we should run 12 V
-     instead of 9 V.
-4. **Does the DIN-8S socket have a switching contact?** There is no power
-   switch on the board, so at 2.1 mA a pack left connected is flat in about
-   ten days. A switched socket would break the battery on unplugging, the way
-   a guitar's TRS output jack does. If not, we will fit a switch in the
-   battery lead.
-5. **Which way round is pizz and which is arco?** The drawing labels the
-   switch `[Space]`. On this board, switch **closed** = all-pass grounded =
-   PZT 2 inverted relative to PZT 1.
-6. **220 pF ‖ 1.5 nF = 1.72 nF.** Is one of these meant to be select-on-test,
-   or is the pair simply how the value is made up? Both are fitted as drawn.
+### Advice we are deliberately not taking
+
+Four of RMC's suggestions assume a self-built board, and this one is going to
+a turnkey line. Recorded so they are not re-litigated:
+
+- **"Select 1.8 nF capacitors with a 1.7 nF ±50 pF value."** Impossible on a
+  turnkey line. Solved instead by ordering all six from one reel, so they track
+  each other far more tightly than the tolerance band suggests.
+- **"A multi-layer ceramic capacitor can be trimmed by abrading it."** A
+  hand-selection method by another route. **Keep it as a field-service note** —
+  it is genuinely useful if one of these ever needs adjusting after the fact —
+  but the board is specified so it never has to be used.
+- **"Through-hole jumpers (wire-wrap AWG #30) when a long jump is a pain."**
+  Reintroduces manual operations to a board built in one pass. Solved with the
+  1206 trick instead.
+- **"Manual assembly isn't difficult with 0805 and SOIC."** True, and why the
+  board started that way — but turnkey assembly is what freed the package
+  choice, and the 1206 passives it allowed are what made the routing work.
+
+### One query left open on RMC's side, not ours
+
+RMC offered to fit a **USB socket in the Poly-Drive II enclosure**, so the
+preamp can be phantom-powered and the battery kept charged. Charging is fine.
+**Running permanently from USB may not be:** the battery's negative terminal
+*is* the −4.5 V rail, because the splitter's midpoint is signal ground. If the
+socket's ground is common with battery negative and it is fed from an earthed
+source while the PD2's output reaches earth through a mixer, the −4.5 V rail is
+tied to earth through the audio ground — a short across the lower half of the
+splitter.
+
+It only bites in the permanently-powered case; occasional charging can always
+be done unplugged. It affects their enclosure, not this board, and they may
+already isolate the charging circuit.
 
 ## Regenerating
 

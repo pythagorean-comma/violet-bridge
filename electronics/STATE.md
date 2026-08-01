@@ -5,9 +5,14 @@ anything in `electronics/`.
 
 ## Status in one line
 
-**The supply is settled. One number is still outstanding.**
+**Everything is settled and the board is built. Nothing is outstanding.**
 
-After three rounds, the arrangement is fixed: **the Poly-Drive II supplies
+*Updated 2026-08-01. The sections below were written 2026-07-30, while the
+headroom question was still open and no rework had started; both of those are
+now false, and where a later section contradicts an earlier one, the later one
+is right. Round four's answer is under "The headroom answer" below.*
+
+After four rounds, the arrangement is fixed: **the Poly-Drive II supplies
 ±4.5 V** down DIN pins 7 and 8, shell as ground, and **RMC perform the
 modification themselves when they assemble our unit.** Power management stays
 entirely in the PD2, with the instrument electronics slaved to it, on their
@@ -18,20 +23,41 @@ plainly because it was previously implied across three sections and asserted in
 none. Total draw is under 6 mA — 3.5 mA for the PD2, ~2 mA for us — from a
 1350 mAh USB-rechargeable 9 V, giving ~70 hours between charges.
 
-**The one thing still open is signal headroom**: whether the white element's
-open-circuit peak fits inside the ~±4.35 V of swing that ±4.5 V rails allow.
-Asked in round one, unanswered in three replies, and now released on its own
-(`RMC-QUESTIONS-2.md`, round three) alongside a query about the proposed USB
-socket.
+**Headroom is answered and it does not change the circuit.** Arco cannot clip;
+pizz can, and RMC's position is that this is inaudible provided the electronics
+do not latch up, which the OPA4191's datasheet confirms they do not. Full
+reasoning under "The headroom answer".
 
-**No rework has started, and none should until that answer arrives.** It is the
-only remaining question that could change the circuit rather than the layout,
-and the supply has already forced two complete redos. Everything settled is
-recorded below, along with the rework plan itself, so the wait costs nothing.
+### Where the board is
+
+**Branch `pd2-slaved-board`. The board is complete and DRC-clean.** `./build.sh`
+regenerates schematic and board from `design.py`, checks both against it, runs
+ERC and DRC and writes the fab package:
+
+| | |
+| --- | --- |
+| Outline | **78.8 × 81.3 mm = 6406 mm²** — measured, not projected |
+| Parts | 80 placements: 72 SMD, 8 through-hole connectors |
+| Nets | 53 nets, 233 pin connections, matched to `design.py` exactly |
+| DRC | **0 violations, 0 unconnected items** |
+| ERC | 0 errors; 10 warnings, all of them a CD4066 bidirectional pin meeting a power flag, which is what those pins are |
+| Routing | entirely in `gen_pcb.py`. No autorouter is involved and none is needed |
+
+The size number above replaces the ~60 × 70 mm projection that used to sit at
+the bottom of this document; see "The size lesson, measured".
+
+**The remaining checks are the three `build.sh` cannot do** — open the project
+in KiCad once and confirm no symbol shows a broken library link, re-audit AGND
+by hand against the table below, and confirm `NO_CONNECT` is empty. The last
+two are properties of `design.py` and have not changed since the schematic was
+verified.
 
 ---
 
 ## Where the code is
+
+**`pd2-slaved-board` is the current board** and implements everything in this
+document. Work through it, not through `main`.
 
 **`main` is the original 88 × 112 mm hand-buildable board** (`8c425fb`), plus
 this document and `RMC-QUESTIONS-2.md`. Nothing on `main` implements the
@@ -296,7 +322,78 @@ short a −4.5 V rail to ground.
 
 ---
 
-## The blocker: headroom at ±4.5 V
+## The headroom answer — round four, 2026-08-01. Settled.
+
+This was the last open question and the only one that could have changed the
+circuit rather than the layout. **It is answered, and the answer is that no
+change is needed.** The section that follows this one is the case as it stood
+before the answer; it is kept because the reasoning in it is what the answer
+had to address, and because the fallback it describes is still the fallback.
+
+**There is no single peak figure, and that is why one was never given.** Output
+is proportional to excitation, to string tension and to the sine of the break
+angle, so it is instrument-specific. RMC answered the consequence instead:
+
+- **Arco is not at risk.** A bowed attack is "a short noisy fade-in without any
+  large initial percussive transient", and out of phase the two elements cancel
+  vertical force variations at the summing node.
+- **Pizz can clip, and that is acceptable.** In phase, vertical sensitivity is
+  maximised and a picking transient may saturate the buffer. RMC's position is
+  that this is inaudible **provided the electronics do not latch up**.
+- **The concern recorded below was right about the mechanism and wrong about
+  the severity.** If the white element clips, the two do stop summing at equal
+  weight — but the red element bypasses the electronics entirely and dominates
+  for those milliseconds, giving "an extremely short change in polar pattern,
+  not an audible click or buzz".
+
+### The load-bearing fact, confirmed from the datasheet
+
+Everything above rests on the amplifier not latching up, so this was checked
+rather than assumed. **OPA191/OPA2191/OPA4191 datasheet SBOS701D (December
+2015, revised August 2021), §8.3.3 "Phase Reversal Protection":**
+
+> "The OPAx191 family has internal phase-reversal protection... Input signals
+> beyond the rails do not cause phase reversal; instead, the output limits into
+> the appropriate rail."
+
+Two numbers from the same datasheet complete the picture:
+
+- **Absolute maximum on a signal input pin is only (V−) − 0.5 V to (V+) + 0.5 V,
+  with an input current limit of ±10 mA.** So the protection is a clamp, and
+  what keeps the clamp inside its rating is the series resistance in front of
+  it. R01, the 1 kΩ stopper, is that resistance: even 5 V of overdrive past the
+  rail draws 5 mA, half the limit. **R01 is therefore doing two jobs and must
+  not be reduced** — it was placed as a stopper, and it is also what makes
+  accepting clipping safe.
+- **Absolute maximum supply is ±20 V (40 V single-supply)**, so RMC's "safe to
+  ±15 V" is conservative rather than a limit. The `supply-charge-pump`
+  fallback's ±9 V sits a long way inside it.
+
+### What would falsify this
+
+Recorded because "settled" here means "settled on RMC's judgement plus one
+datasheet paragraph", not "measured on this instrument":
+
+- **Audible artefacts on hard pizzicato** — a click, a buzz, or a change in
+  timbre that comes and goes with playing strength rather than smoothly with
+  it. That is the failure this reasoning predicts will not happen.
+- **Anything worse than a momentary change in polar pattern**, which is what
+  RMC predict the clipping will sound like.
+
+**If it is falsified, the fix needs no layout change.** RMC gave a mitigation
+that is component values only, applicable after assembly without a respin: a
+capacitor in parallel with R02 (3M3) divides against the element's own 1700 pF
+and attenuates the white signal into the buffer, and increasing C04 loads the
+red element correspondingly to restore the balance. The `supply-charge-pump`
+branch remains the second fallback, and RMC have now discouraged it twice.
+
+**Consequence for the board: none.** No netlist change, no layout change.
+
+## The case before the answer — how it stood, and what the fallback is
+
+*Kept as the reasoning the answer had to address. The conclusion of this
+section — that the number decides the concept — is superseded by the section
+above; the fallback comparison at the end of it is still current.*
 
 ### The rails are ±4.5 V
 
@@ -369,10 +466,10 @@ for it.
 | Swing | ~±4.35 V | ~±8.85 V (**+6.2 dB**, beyond RMC's own 12 V) |
 | PD2 modification | **RMC do it at assembly** | none — pins 7/8 untouched |
 | Drain on PD2 battery | ~2 mA of under 6 mA | none |
-| Board | ~60 × 70 mm projected | 56 × 94 mm **measured** |
+| Board | **78.8 × 81.3 mm measured** | 56 × 94 mm measured |
 | Battery to charge | one, in the PD2 | one, in the instrument, plus hatch |
 | RMC's view | recommended | discouraged twice |
-| Status | not started | **built, verified, DRC nearly clean** |
+| Status | **built, verified, DRC clean** | built, verified, DRC nearly clean |
 
 Path B's grounding is the part worth checking rather than assuming, and it is
 clean: the pump makes AGND the pack's negative terminal, so bonding AGND to the
@@ -389,7 +486,7 @@ So the element-peak answer does not change what gets built *within* A. It
 decides whether A holds at all — and the bar for leaving it has risen, because
 A is now RMC's considered recommendation rather than a convenience.
 
-### Asked once, unanswered in three replies
+### Asked once, unanswered in three replies — then answered in the fourth
 
 It was **question 1 of the seven** sent in round one (`RMC-QUESTIONS.md` on
 `supply-charge-pump`), in the subject line, phrased as a threshold rather than
@@ -484,47 +581,52 @@ Which is why RMC's 1206 suggestion matters. Pad gaps: 0402 ~0.5 mm (no track
 fits), 0805 ~0.9 mm (one), **1206 ~1.6 mm (two)**. Going bigger on the parts
 that lanes must cross buys more than going smaller ever did.
 
-### Projected size after the redesign — UNVERIFIED
+### Size after the redesign — MEASURED, 2026-08-01
 
-Everything above this line is measured. This is not.
-
-**~60 × 70 mm, ≈ 4200 mm²**, range 55–65 wide × 65–78 tall.
+**78.8 × 81.3 mm = 6406 mm², from a board that is placed, routed and
+DRC-clean.** This replaces a projection of ~60 × 70 ≈ 4200 mm² that stood here.
 
 | | Area | vs original |
 | --- | --- | --- |
 | Original (`main`) | 88 × 112 = 9856 mm² | — |
-| Abandoned branch | 56 × 94 = 5264 mm² | 1.87× |
-| **Projected** | **~60 × 70 ≈ 4200 mm²** | **~2.3×** |
+| Abandoned `supply-charge-pump` | 56 × 94 = 5264 mm² | 1.87× |
+| **This board** | **78.8 × 81.3 = 6406 mm²** | **1.54×** |
 
-**The gain is nearly all in height**, from two structural savings: the power
-strip disappears (~20 mm becomes ~13 mm of DIN connector, toggle and control
-network), and sharing a quad between two channels saves one package height per
-pair — six tiles at 12 mm becomes three blocks at ~18 mm, so 72 mm becomes
-~55 mm.
+**The projection missed, and it missed the way the last one did.** 4200 against
+6406 is 34% low, and the error is the same both previous times: counting parts
+rather than counting lanes. What actually set the two dimensions:
 
-**Width may get slightly worse**, 56 → ~60 mm, which is counter-intuitive
-enough to state plainly. SOIC-14 is ~9.2 mm wide against SOIC-8's measured
-7.49 mm; each channel's passives now sit in one row rather than two, because
-the two rows are spent on the two channels either side of the shared package;
-and the corridor is untouched, since six OUT plus six SWN lanes is still
-twelve lanes however the op-amps are packaged.
+- **Height came out near the prediction** — ~70 projected against 81.3. Most of
+  the excess is the fan-in above the tail connector: six OUT lanes have to
+  reach a header whose pins run the same way round as the channels, and that
+  needs six approach rows plus clearance to the last sub-row.
+- **Width was badly under** — ~60 projected against 78.8. Twelve corridor lanes
+  was the right count. What was missed is that OUT and SWN pull in opposite
+  directions and end up occupying **different layers over the whole height of
+  the board**, which leaves V−, SW_CTL and SW_TOG no route through the corridor
+  at all. They need a column of their own east of the switches, and that column
+  plus the bypass caps beyond it is most of the width the projection lacked.
 
-Sanity check: ~900 mm² of land against 4200 mm² is 21% utilisation, matching
-the 20% measured on the abandoned board. Of that 900 mm², **the seven
-connectors are ~310** — more than a third, and the largest single consumer.
+**Two dimensions were spent deliberately, on routability rather than on parts.**
+The right-hand column sits 2 mm further out than the parts need and the tail
+connector 0.5 mm lower, both because a measured crossing demanded it. That is
+the rule this project keeps relearning: **a number from an unroutable placement
+is not a smaller board, it is a board that does not exist.**
 
-**Confidence: moderate on height, low on width.** What governs both is lane
-counting past each package, which is exactly what produced a 75% miss when a
-size was last projected (50 × 60 quoted, 56 × 94 delivered). The 12 mm tile
-pitch was not predicted — it emerged after 9.5 mm and 10 mm were both tried
-and failed. Two things could move this materially: the **1206 trick downward**,
-if lanes can pass through components rather than around them, which is
-untested; and **two channels per package upward**, if their nets do not fit
-above and below one package as assumed, in which case the block grows toward
-24 mm and the height saving largely evaporates.
+**Land utilisation is about 14%**, against 17% on the original and ~20% on the
+abandoned branch. This board is *less* dense than either, which is the clearest
+statement of what constrains it: not area for parts, but room for lanes. The
+eight connectors remain the largest single consumer of land.
 
-**Replace this section with the measured figure** as soon as `gen_pcb.py`
-produces a real outline.
+#### Figures quoted during the work that were wrong
+
+Recorded because the same mistake was made twice in one session:
+
+- **91 × 75** — measured before the courtyard overlaps were found, so not a
+  legal placement at all.
+- **5302 mm² (74 × 71)** — a legal placement with 0.7 mm of lane clearance.
+  Legal but not routable: making room for the routing took it to 5971, the 3 mm
+  border took it to 6044, and actually routing it took it to 6406.
 
 ---
 
@@ -554,17 +656,23 @@ Asking one question rather than five worked, and the reason is worth keeping:
 the four held questions were each downstream of it, and three dissolved on the
 answer without ever being sent.
 
-## Questions to send — round three
+## Questions sent to RMC — round three, answered
 
-Full text in **`RMC-QUESTIONS-2.md`**. Three items, one of them a blocker:
+Full text in **`RMC-QUESTIONS-2.md`**. Three items, one of them the blocker:
 
-1. **The proposed USB socket.** Time-critical rather than important — they are
-   about to build the unit, and fitting it is a decision being made now. See
-   "Open query" above.
-2. **The element peak output.** The blocker, released at last with nothing left
-   to hold it behind.
+1. **The proposed USB socket.** Time-critical rather than important — they were
+   about to build the unit, and fitting it was a decision being made then. See
+   "Open query" above; the hazard identified there stands, and only bites in
+   the permanently-powered case.
+2. **The element peak output.** The blocker. **Answered** — see "The headroom
+   answer" above. No circuit or layout change.
 3. **Polarity**, stated rather than asked: we print pin 7 = +4.5 V and build
-   the loom to match; they say if they would rather it were reversed.
+   the loom to match; they say if they would rather it were reversed. No
+   objection raised, so that is the convention, and it is now on the
+   silkscreen, in `NOTES.md`, in `ENCLOSURE.md` and in `fab/ORDER.md`.
+
+**Nothing is outstanding with RMC.** The next thing they need from us is the
+design itself, for review.
 
 ## RMC advice we are deliberately not taking
 
@@ -858,82 +966,46 @@ asked.
 
 ---
 
-## Next steps, in order
+## What is done, and what is left
 
-**Step 0 is a gate, not a task.** Nothing below it starts until the element
-peak output comes back. Everything below it is written out now precisely so
-that waiting costs nothing.
+Everything the rework called for is done. This section replaces the ordered
+plan that used to stand here; the plan itself, with the reasoning for each
+step, is in `.claude/plans/read-electronics-state-md-before-doing-stateful-bonbon.md`.
 
-0. **Wait for RMC on the element peak output.** If the elements stay well under
-   ~4 V, build exactly as described below. If they can exceed it, do not lay
-   out a board that clips one element and not the other — reopen the supply
-   with RMC, knowing they have twice recommended against a local one.
+### Done
 
-   The USB-socket query is *not* a gate on the board. It changes nothing in
-   `design.py`; it only affects what RMC fit to their own enclosure, and it is
-   urgent solely because they are building the unit now.
+| | |
+| --- | --- |
+| **The gate** | RMC answered the element peak output on 2026-08-01. See "The headroom answer". |
+| **`design.py`** | `power()` deleted outright; `channel_pair()` around one OPA4191 per two channels; `switch_bank()` for two CD4066B on RMC's control network; `output()` with DIN 7/8 as the rails and JP1 gone; `bypass()` added. `NO_CONNECT` is empty, as it should be. |
+| **`gen_project.py`** | `symbol_library()` driven off `circuit.LIBS`, so a borrowed part can no longer be added to the design and left out of the written library. `VIN`/`VFUSED` dropped from the netclass patterns. |
+| **`gen_sch.py`** | Two-channel blocks, switch and output sections rewritten, `power_section()` deleted, the backwards sheet note about a floating supply replaced. |
+| **`gen_pcb.py`** | Placed, routed and DRC-clean at 78.8 × 81.3 mm. Routing entirely by hand in code; no autorouter. |
+| **The documents** | `STATE.md` (this file), `NOTES.md`, `ENCLOSURE.md` and `fab/ORDER.md` all brought up to the built board. |
 
-### Then: branch
+### Left
 
-Branch from **`main`**. Take across from `supply-charge-pump`, by cherry-pick
-or by hand, exactly three things:
+**Nothing is blocking.** Three checks the build cannot perform, and one
+external step:
 
-- `RMC-QUESTIONS.md` — the round-one message as sent.
-- `ENCLOSURE.md` — mounting analysis and the 18-wire loom problem stand; the
-  battery bay, charging hatch and mass budget do not.
-- the `verify.py` `NO_CONNECT` change and the `build.sh` layout-PDF export.
+1. **Open the project in KiCad once** and confirm no symbol shows a broken
+   library link. This is the only check that catches the `symbol_library()`
+   class of bug, because the schematic embeds its own copy of every symbol and
+   both ERC and `verify.py` pass regardless.
+2. **Re-audit AGND by hand** against the table under "Answer 2 — grounding".
+   The only things on it should be six saddle shields, six 3M3 bias resistors,
+   the RF and all-pass capacitors, the grounded side of each 4066 cell, C701
+   and the four bypass caps. Total DC into AGND should be leakage only.
+3. **Read the layout PDF** — `fab/rmc-pizz-arco-layout.pdf`, which plots the
+   four copper layers with reference designators. It is the artefact a reviewer
+   can actually comment on.
+4. **Send the design to RMC for review.** They designed the circuit and asked
+   to see it. That is the next thing that should happen.
 
-**Not** `design.py`, `gen_sch.py` or `gen_pcb.py`. They look like a head start
-and are not, for the reasons under "keep the toolchain, rewrite the circuit
-layer" above.
+### Then, after review
 
-### Then: the circuit layer, in this order
-
-1. **`design.py`.** Delete `power()` outright — J9, F701, D701–D703,
-   C701–C708, R702–R704, U7 — and leave the AGND symmetry rule in its place as
-   a comment. Rewrite `channel()` around one **OPA4191 SOIC-14 per two
-   channels** (buffers on A and B, all-passes on C and D — the assignment
-   argument above is load-bearing). Collapse C04 ‖ C05 to a single **C04 1n8
-   C0G ±2%**; R04/R05/R06 to ±1%; 1206 for anything a lane must cross. Rewrite
-   `switch_bank()` for **two** CD4066B with RMC's control network — R701 1 MΩ
-   to Vss, R702 20 kΩ from the toggle to Vdd, C701 10 nF to **ground**, not to
-   V− as on `main`. Rewrite `output()` for DIN pin 7 = V+, pin 8 = V−, and
-   **delete JP1**. Update `SUPPLY_RANGE` / `SUPPLY_INTENT`, `OPAMP_FP` to
-   SOIC-14, and the `LIBS` entry to a quad body — the current OPA2197xD →
-   OPA2191 rename is a dual and will not do. Add `NO_CONNECT` for any pin
-   deliberately left floating.
-2. **`gen_project.py`, two fixes on the way past.** Drive `symbol_library()`
-   off `circuit.LIBS`, iterating the `rmc`-nicknamed entries exactly as
-   `library_tables()` already does — that is the latent bug described above,
-   which nothing in the build catches. And drop `VIN` / `VFUSED` from
-   `netclass_patterns`.
-3. **`gen_sch.py`.** Keep `place_passive()`, `pin_for()`, `hang()`, the
-   `build()` skeleton and the 1.27 mm grid discipline. Rewrite `channel_block()`
-   as a two-channel block, rewrite `switch_section()` and `output_section()`,
-   delete `power_section()`.
-4. **`gen_pcb.py`.** Keep the whole `Board` class. Rewrite placement and
-   routing — `TILE_PITCH`, `TILE_PLACEMENT`, `BOARD_PLACEMENT` and
-   `route_channel()` all carry constants that no longer mean anything. Every
-   trap under "Layout" above is still live, above all **measure rotated pad
-   positions, never predict them**.
-
-### Then: the documents
-
-5. **`NOTES.md`** — supply, grounding, switching-off, flat-battery and
-   outboard-enclosure sections are all wrong. Three things to get right:
-   "if the battery goes flat" is now "if *the PD2's* battery goes flat", which
-   takes the whole instrument with it, so the thin-and-quiet failure signature
-   described there no longer applies at all; there is **no low-battery
-   warning**, the pack holding 9 V and then cliffing, so charge weekly; and the
-   pizz/arco rest state is **arco**, which is what you get with the toggle
-   disconnected or the loom broken.
-6. **`ENCLOSURE.md`** — mounting stands; battery bay, hatch and mass budget go.
-   The box becomes a board and a socket, perhaps 35 g rather than 100 g.
-7. **`fab/ORDER.md`** — measured board size, all-SMT, C0G and ±1%
-   requirements, **the six 1.8 nF as one line item from a single reel**, and
-   remove the claim that the board was sized for hand-building.
-
-### And once there is a real outline
-
-Replace the projected ~60 × 70 mm above with the measured figure. The last size
-projection missed by 75%.
+Order from `fab/rmc-pizz-arco-pcbway.zip`, following `fab/ORDER.md` — which
+carries the four requirements that are invisible in the gerbers and the BOM
+(matched capacitors from one reel, C0G, ±1% inverter resistors, OPA4191 by
+part number) and the polarity convention that destroys the board if a loom is
+built backwards.
