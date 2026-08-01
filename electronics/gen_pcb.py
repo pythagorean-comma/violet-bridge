@@ -345,24 +345,52 @@ def place_rest(board):
             footprint.Reference().SetPosition(point(*TAIL_REFERENCE[ref]))
 
 
-def free_offset(board, ref, number, candidates, clearance=0.55):
-    """Pick the first stub direction that clears every other pad.
+def free_offset(board, ref, number, candidates):
+    """Pick the first stub direction whose via actually clears every foreign pad.
 
     Hand-tuning fifty-odd via offsets is where the previous board burned its
     iterations. This tries a few directions and takes the first that is far
     enough from foreign copper, so adding a part cannot silently push a via
     into its neighbour.
+
+    The test measures the via's edge against each pad's rectangle, because
+    pads on this board are not one size: a 1206 is 1.12 x 1.75mm and a 2.54mm
+    header pad is 1.70mm square, and a via needs VIA_DIAMETER/2 + CLEARANCE of
+    room from the pad's edge rather than from its centre. An earlier version
+    compared centres against a single 0.55mm scalar, which asks for less than
+    half what a header pad needs -- it happened to pass only because the
+    candidate offsets below are all 1.5mm or more, so the offsets were doing
+    the protecting and the test was decorative.
+
+    Same-net pads are skipped: no clearance rule applies inside a net, and
+    counting them would reject good directions.
     """
     origin = board.pad(ref, number)
-    others = [board.pad(r, p.GetNumber())
-              for r, fp in board.footprints.items()
-              for p in fp.Pads()
-              if not (r == ref and p.GetNumber() == str(number))]
+    net = circuit.DESIGN.pin_owner()[(ref, str(number))]
+    keep_out = VIA_DIAMETER / 2 + CLEARANCE
+    boxes = []
+    for other, footprint in board.footprints.items():
+        for pad in footprint.Pads():
+            if pad.GetNetname() == net:
+                continue
+            box = pad.GetBoundingBox()
+            boxes.append((to_mm(box.GetLeft()), to_mm(box.GetRight()),
+                          to_mm(box.GetTop()), to_mm(box.GetBottom())))
+
+    def clears(x, y):
+        for left, right, top, bottom in boxes:
+            dx = max(left - x, 0.0, x - right)
+            dy = max(top - y, 0.0, y - bottom)
+            if (dx * dx + dy * dy) ** 0.5 < keep_out:
+                return False
+        return True
+
     for dx, dy in candidates:
-        target = (origin[0] + dx, origin[1] + dy)
-        if all(abs(target[0] - ox) > clearance or abs(target[1] - oy) > clearance
-               for ox, oy in others):
+        if clears(origin[0] + dx, origin[1] + dy):
             return (dx, dy)
+    # Deliberately fatal rather than best-effort: a stub with nowhere clear to
+    # go is a placement problem, and the fix is to move the part or add a
+    # direction, not to let the build put a via somewhere it does not fit.
     raise SystemExit(f"no clear stub direction for {ref}.{number}")
 
 
