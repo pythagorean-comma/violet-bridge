@@ -39,6 +39,13 @@ echo "== schematic and project =="
 echo "== board =="
 "$KICAD_PY" gen_pcb.py 2>&1 | grep -v "assert" || true
 
+echo "== autoroute =="
+# Placement, plane stubs and the critical nets come from gen_pcb.py;
+# freerouting fills in the rest and route.py imports the result. If the
+# jar is missing it says so and leaves the board unrouted rather than
+# failing the build.
+"$KICAD_PY" route.py 2>&1 | grep -v "assert" || true
+
 # After the board, not before: this checks the drawing against design.py and
 # the board's footprint linkage against the drawing, so both must be current.
 echo "== checking the drawing and the board against design.py =="
@@ -56,6 +63,10 @@ echo "== documentation outputs =="
     -o fab/rmc-pizz-arco-bom.csv "$PROJECT.kicad_sch" >/dev/null
 "$KICAD_CLI" pcb export pos --format csv --units mm \
     -o fab/rmc-pizz-arco-pos.csv "$PROJECT.kicad_pcb" >/dev/null
+# A layered plot with reference designators -- the layout asset a reviewer can
+# actually comment on. The 3D render is decorative; this one shows the copper.
+"$KICAD_CLI" pcb export pdf --layers F.Cu,In1.Cu,In2.Cu,B.Cu,F.SilkS,Edge.Cuts \
+    -o fab/rmc-pizz-arco-layout.pdf "$PROJECT.kicad_pcb" >/dev/null
 
 # The set a fab actually gets: copper, mask, silk, outline, drill -- and
 # nothing else. A blanket export also writes Fab, Courtyard and User layers,

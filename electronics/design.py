@@ -9,7 +9,7 @@ Per string channel, following RMC's schematic of 2026-07-29:
 
     PZT1 (red)  ---------------------------------+--> OUT
                                                  |
-    PZT2 (white) -- 1k --> [buffer] -- 47k --> [+-1 stage] -- 1n72 --+
+    PZT2 (white) -- 1k --> [buffer] -- 47k --> [+-1 stage] -- 1n8 --+
 
 The second stage is a first-order all-pass whose RC corner sits at 34 kHz,
 well above the audio band, so in-band it is a polarity flip: switch open
@@ -17,9 +17,13 @@ gives +1, switch closed grounds the non-inverting input and gives -1. The
 all-pass form keeps gain magnitude and source loading identical either way,
 so flipping it produces no level jump.
 
-Everything outside RMC's drawing -- the mid-rail split of the floating
-supply, the analog switch bank, input protection and decoupling -- is added
-here and flagged in NOTES.md.
+The elements are wired out of phase on the transducer plate, so closing the
+switch brings them *into* phase. In phase is pizz; out of phase is arco.
+
+Power comes from the Poly-Drive II as +/-4.5V on DIN pins 7 and 8, with the
+shell as ground, so there is no supply section here at all -- see the AGND
+rule on `_GROUND_RULE` below, which is the one thing on this board that must
+not be broken.
 """
 
 CHANNELS = 6
@@ -31,39 +35,100 @@ CHANNELS = 6
 PROJECT = "rmc-pizz-arco"
 
 # The supply spec appears on the connector, the silkscreen and the schematic
-# sheet. It has already drifted once, so it is written here and nowhere else.
-SUPPLY_RANGE = "9-15V DC"
-SUPPLY_INTENT = "9V onboard floating battery pack, approx 2.1mA"
+# sheet. It has already drifted twice, so it is written here and nowhere else.
+# verify.check_supply_annotations() asserts this string reaches both.
+SUPPLY_RANGE = "+/-4.5V from Poly-Drive II"
+SUPPLY_INTENT = ("DIN-8 pin 7 = +4.5V, pin 8 = -4.5V, shell = ground; "
+                 "approx 2mA, drawn symmetrically")
+
+_GROUND_RULE = """
+No DC path from either rail to AGND, anywhere on this board.
+
+The Poly-Drive's ground is the midpoint of a transistor rail splitter, and it
+reaches us down the DIN shell -- the same single conductor carrying the six
+string returns. Any imbalance between the +4.5V and -4.5V drains flows in that
+one wire, which is why RMC ask for the drains to be symmetrical and for the
+ground terminal to carry audio only.
+
+Satisfied by construction today: the op-amps draw V+ to V- through the die,
+the CD4066 has no ground pin at all, and the control network runs
+V+ -> 20k -> SW_CTL -> 1M -> V- with no ground leg. Everything touching AGND
+is either an audio return or a capacitor.
+
+So this forbids, permanently: an indicator LED, a rail-to-ground divider, a
+single-ended pull-up, and asymmetric bypassing.
+"""
 
 # Library registry: lib_id -> (nickname, stock library, symbol, rename).
-# OPA2191 is not in the stock libraries; OPA2197xD is the same SOIC-8 dual
+# OPA4191 is not in the stock libraries; OPA4197xD is the same SOIC-14 quad
 # from the same TI family, so it supplies the body and we rename it.
 LIBS = {
     "Device:R": ("Device", "Device", "R", None),
     "Device:C": ("Device", "Device", "C", None),
-    "Device:C_Polarized": ("Device", "Device", "C_Polarized", None),
-    "Device:Polyfuse": ("Device", "Device", "Polyfuse", None),
-    "Device:D_Schottky": ("Device", "Device", "D_Schottky", None),
-    "Device:D_TVS": ("Device", "Device", "D_TVS", None),
     "Connector_Generic:Conn_01x02": ("Connector_Generic", "Connector_Generic", "Conn_01x02", None),
     "Connector_Generic:Conn_01x03": ("Connector_Generic", "Connector_Generic", "Conn_01x03", None),
-    "Connector_Generic:Conn_01x08": ("Connector_Generic", "Connector_Generic", "Conn_01x08", None),
-    "Jumper:SolderJumper_2_Open": ("Jumper", "Jumper", "SolderJumper_2_Open", None),
-    "rmc:OPA2191": ("rmc", "Amplifier_Operational", "OPA2197xD", "OPA2191"),
+    "Connector_Generic:Conn_01x09": ("Connector_Generic", "Connector_Generic", "Conn_01x09", None),
+    "rmc:OPA4191": ("rmc", "Amplifier_Operational", "OPA4197xD", "OPA4191"),
     "Analog_Switch:CD4066BM": ("Analog_Switch", "Analog_Switch", "CD4066BM", None),
     "power:GNDA": ("power", "power", "GNDA", None),
     "power:PWR_FLAG": ("power", "power", "PWR_FLAG", None),
 }
 
-R_FP = "Resistor_SMD:R_0805_2012Metric"
-C_FP = "Capacitor_SMD:C_0805_2012Metric"
-OPAMP_FP = "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
+# 1206 rather than 0805 throughout, on RMC's advice and on measurement: the
+# clear gap between a part's own pads is 0.80mm at 0805 and 1.80mm at 1206,
+# which is one routing lane against two. The board is ~80% air, so the ~4%
+# of extra land buys a second lane through every passive.
+R_FP = "Resistor_SMD:R_1206_3216Metric"
+C_FP = "Capacitor_SMD:C_1206_3216Metric"
+OPAMP_FP = "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
 SWITCH_FP = "Package_SO:SO-14_3.9x8.65mm_P1.27mm"
+CONN_FP = {
+    2: "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
+    3: "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
+    9: "Connector_PinHeader_2.54mm:PinHeader_1x09_P2.54mm_Vertical",
+}
 
-OPAMP_DATASHEET = "https://www.ti.com/lit/ds/symlink/opa2191.pdf"
-OPAMP_DESCRIPTION = ("Dual 36V precision rail-to-rail op amp, 140 uA/ch, "
-                     "20 pA bias current, SOIC-8")
+OPAMP_DATASHEET = "https://www.ti.com/lit/ds/symlink/opa4191.pdf"
+OPAMP_DESCRIPTION = ("Quad 36V precision rail-to-rail op amp, 140 uA/ch, "
+                     "20 pA bias current, SOIC-14")
 SWITCH_DATASHEET = "https://www.ti.com/lit/ds/symlink/cd4066b.pdf"
+
+# Pins deliberately left unconnected. verify.py treats every other floating
+# pin as an error, so this is where an intentional one is declared -- next to
+# the circuit rather than buried in the checker.
+#
+# Empty, and it should stay that way: twelve op-amp halves fill three quads
+# exactly, and both spare CD4066 cells are parked on AGND and V-. If anything
+# lands here, the quad assignment or the spare-cell parking is wrong.
+NO_CONNECT = ()
+
+# How one OPA4191 serves two channels.
+#
+# Units are A=(1,2,3) B=(5,6,7) C=(8,9,10) D=(12,13,14), power=(4,11), with
+# pins 1-7 down the left of the package and 8-14 back up the right. So the
+# level pairs are 1<->14, 3<->12, 5<->10, 7<->8.
+#
+# Both buffers take A and B, which puts both high-impedance + inputs on pins 3
+# and 5 -- the connector side, where the 3M3 nodes want to be. Only the buffer
+# *outputs* cross to the right-hand half, and those are low impedance.
+#
+# The pairing then matters as much as the split: A pairs with D and B with C,
+# because A and D are both in the upper half of the package and B and C both
+# in the lower. Each channel gets one horizontal half and the two never
+# interleave. Pairing A with C instead sends both channels diagonally across
+# the footprint.
+# Each entry is (schematic unit, (out, -in, +in)). All four amplifier units
+# draw at identical local coordinates, so one routine can place any of them.
+QUAD_UNITS = {
+    "odd":  {"buf": (1, (1, 2, 3)),  "ap": (4, (14, 13, 12))},   # A + D
+    "even": {"buf": (2, (7, 6, 5)),  "ap": (3, (8, 9, 10))},     # B + C
+}
+QUAD_POWER = {"V+": 4, "V-": 11}
+QUAD_POWER_UNIT = 5
+
+# CD4066B, SO-14: cell -> (terminal a, terminal b, control).
+SWITCH_CELLS = {"A": (1, 2, 13), "B": (3, 4, 5), "C": (8, 9, 6), "D": (10, 11, 12)}
+SWITCH_POWER = {"V+": 14, "V-": 7}
 
 
 def patch_symbol(lib_id, definition):
@@ -72,7 +137,7 @@ def patch_symbol(lib_id, definition):
     Applied identically when embedding a symbol in the schematic and when
     writing the project library, or ERC reports the two copies as differing.
     """
-    if lib_id.endswith(":OPA2191"):
+    if lib_id.endswith(":OPA4191"):
         for item in definition:
             if isinstance(item, list) and str(item[0]) == "property":
                 if item[1] == "Datasheet":
@@ -129,6 +194,25 @@ class Design:
         self.pin_owner()
         for net, entries in self.nets.items():
             assert len(entries) >= 2, f"net {net} has only {entries}"
+        self.check_ground_rule()
+
+    def check_ground_rule(self):
+        """Enforce _GROUND_RULE: nothing resistive between a rail and AGND.
+
+        A resistor with one end on a rail and the other on AGND is the exact
+        shape of the mistake -- an indicator LED's dropper, a divider, a
+        pull-up. It would put DC in the DIN shell alongside six string
+        returns, and nothing downstream would catch it: ERC, the netlist
+        comparison and DRC would all pass.
+        """
+        owner = self.pin_owner()
+        for ref, part in self.parts.items():
+            if part.lib_id != "Device:R":
+                continue
+            nets = {owner.get((ref, str(pin))) for pin in (1, 2)}
+            if "AGND" in nets and nets & {"V+", "V-"}:
+                raise AssertionError(
+                    f"{ref} puts DC between {sorted(nets)} -- see _GROUND_RULE")
 
 
 def _resistor(design, ref, value, net_a, net_b, description=""):
@@ -143,8 +227,23 @@ def _capacitor(design, ref, value, net_a, net_b, description=""):
     design.connect(net_b, (ref, 2))
 
 
-def channel(design, index):
-    """One string channel: RMC's drawing, part for part."""
+def quad(design, index):
+    """One OPA4191, serving two channels. Units per QUAD_UNITS."""
+    ref = f"U{index}"
+    design.add(Part(ref, "OPA4191", "rmc:OPA4191", OPAMP_FP, units=5,
+                    datasheet=OPAMP_DATASHEET, mpn="OPA4191IDR",
+                    description=f"Buffers + all-passes, channels "
+                                f"{index * 2 - 1} and {index * 2}"))
+    for net, pin in QUAD_POWER.items():
+        design.connect(net, (ref, pin))
+    return ref
+
+
+def channel(design, index, quad_ref, half):
+    """One string channel: RMC's drawing, part for part.
+
+    `half` selects which pair of units on `quad_ref` this channel uses.
+    """
     n = index
     out = f"OUT{n}"          # summing node: red element straight to the DIN
     white = f"IN_W{n}"       # white element, before the input network
@@ -155,41 +254,36 @@ def channel(design, index):
     ap_p = f"SWN{n}"         # all-pass non-inverting input -- the switched node
     ap_out = f"APOUT{n}"
 
-    design.add(Part(f"J{n}", "PZT", "Connector_Generic:Conn_01x03",
-                    "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
+    design.add(Part(f"J{n}", "PZT", "Connector_Generic:Conn_01x03", CONN_FP[3],
                     description=f"Saddle {n} piezo: 1=shield, 2=white, 3=red"))
     design.connect("AGND", (f"J{n}", 1))
     design.connect(white, (f"J{n}", 2))
     design.connect(out, (f"J{n}", 3))
 
-    design.add(Part(f"U{n}", "OPA2191", "rmc:OPA2191", OPAMP_FP, units=3,
-                    datasheet=OPAMP_DATASHEET, mpn="OPA2191IDR",
-                    description="Buffer + all-pass, one string channel"))
-    # Unit A: unity-gain buffer for the white element.
-    design.connect(buf_out, (f"U{n}", 1))
-    design.connect(buf_fb, (f"U{n}", 2))
-    design.connect(buf_in, (f"U{n}", 3))
-    # Unit B: the switched all-pass.
-    design.connect(ap_p, (f"U{n}", 5))
-    design.connect(ap_n, (f"U{n}", 6))
-    design.connect(ap_out, (f"U{n}", 7))
-    # Unit C: supply pins.
-    design.connect("V-", (f"U{n}", 4))
-    design.connect("V+", (f"U{n}", 8))
+    _, (buf_out_pin, buf_fb_pin, buf_in_pin) = QUAD_UNITS[half]["buf"]
+    _, (ap_out_pin, ap_n_pin, ap_p_pin) = QUAD_UNITS[half]["ap"]
+    design.connect(buf_out, (quad_ref, buf_out_pin))
+    design.connect(buf_fb, (quad_ref, buf_fb_pin))
+    design.connect(buf_in, (quad_ref, buf_in_pin))
+    design.connect(ap_out, (quad_ref, ap_out_pin))
+    design.connect(ap_n, (quad_ref, ap_n_pin))
+    design.connect(ap_p, (quad_ref, ap_p_pin))
 
     _resistor(design, f"R{n}01", "1k", white, buf_in, "RF stopper")
     _resistor(design, f"R{n}02", "3M3", white, "AGND", "Piezo bias/load")
     _capacitor(design, f"C{n}01", "100p", buf_in, "AGND", "RF filter")
     _resistor(design, f"R{n}03", "1k", buf_fb, buf_out, "Buffer feedback")
-    _resistor(design, f"R{n}04", "47k", buf_out, ap_n, "All-pass input")
-    _resistor(design, f"R{n}05", "47k", buf_out, ap_p, "All-pass lag")
-    _resistor(design, f"R{n}06", "47k", ap_n, ap_out, "All-pass feedback")
+    _resistor(design, f"R{n}04", "47k 1%", buf_out, ap_n, "All-pass input")
+    _resistor(design, f"R{n}05", "47k 1%", buf_out, ap_p, "All-pass lag")
+    _resistor(design, f"R{n}06", "47k 1%", ap_n, ap_out, "All-pass feedback")
     _capacitor(design, f"C{n}02", "100p", ap_n, ap_out, "All-pass feedback")
     _capacitor(design, f"C{n}03", "100p", ap_p, "AGND", "All-pass lag")
-    _capacitor(design, f"C{n}04", "220p", ap_out, out, "Sum into red element")
-    _capacitor(design, f"C{n}05", "1n5", ap_out, out, "Sum into red element")
-    _capacitor(design, f"C{n}06", "100n", "V+", "AGND", f"U{n} decoupling")
-    _capacitor(design, f"C{n}07", "100n", "V-", "AGND", f"U{n} decoupling")
+    # Matched to the element's own 1700 pF so the two elements sum at equal
+    # weight -- string balance, not tolerance fussiness. C0G/NP0 is not
+    # optional: X7R at this value drifts with temperature and signal voltage.
+    # All six should come from one reel, because RMC's requirement is that the
+    # channels match each other rather than the nominal.
+    _capacitor(design, f"C{n}04", "1n8 C0G", ap_out, out, "Sum into red element")
 
 
 def switch_bank(design):
@@ -197,137 +291,77 @@ def switch_bank(design):
 
     The schematic draws a switch per channel. Bussing six channels to a
     single mechanical SPST would short them together when open, so each
-    channel gets its own contact and one control line drives the lot.
+    channel gets its own cell and one control line drives the lot.
+
+    Two packages, three cells each, so each sits beside the trio it serves.
     """
-    # Three packages carrying two channels each, rather than two packages
-    # carrying four and two. On an SO-14 the A and B cells have both signal
-    # pins on the left (pins 1-7) while C and D have theirs on the right.
-    # Channels arrive from the left and the control line comes down the
-    # right, so using only A and B keeps the two apart entirely -- with C
-    # and D in use the switched-node runs and the control line have to cross
-    # each other, and on a 4-layer board there is nowhere left to put them.
-    # Two spare cells per package is a cheap price for that.
-    PACKAGES = ("U8", "U9", "U10")
-    for position, ref in enumerate(PACKAGES):
+    for position, ref in enumerate(("U4", "U5")):
         design.add(Part(ref, "CD4066B", "Analog_Switch:CD4066BM", SWITCH_FP, units=5,
                         datasheet=SWITCH_DATASHEET, mpn="CD4066BM96",
                         description="Quad analog switch, pizz/arco"))
-        design.connect("V-", (ref, 7))
-        design.connect("V+", (ref, 14))
+        # The CD4066 has no ground pin: Vss is the negative rail, and the
+        # switch cells themselves float. Grounding one side of each cell is
+        # the circuit's doing, not the package's.
+        for net, pin in SWITCH_POWER.items():
+            design.connect(net, (ref, pin))
 
-        # Cell A carries the odd channel, cell B the even one.
-        for cell, (pin_a, pin_b, ctrl) in enumerate(((1, 2, 13), (3, 4, 5))):
-            index = position * 2 + cell + 1
+        for cell, letter in enumerate("ABC"):
+            index = position * 3 + cell + 1
+            pin_a, pin_b, ctrl = SWITCH_CELLS[letter]
             design.connect(f"SWN{index}", (ref, pin_a))
             design.connect("AGND", (ref, pin_b))
             design.connect("SW_CTL", (ref, ctrl))
 
-        # Cells C and D unused: signal pins parked on AGND, controls held at
-        # V- so no CMOS input is ever left floating.
-        for pin_a, pin_b, ctrl in ((8, 9, 6), (10, 11, 12)):
-            design.connect("AGND", (ref, pin_a), (ref, pin_b))
-            design.connect("V-", (ref, ctrl))
+        # Cell D unused: both terminals parked on AGND and the control held at
+        # V-, so no CMOS input is ever left floating.
+        pin_a, pin_b, ctrl = SWITCH_CELLS["D"]
+        design.connect("AGND", (ref, pin_a), (ref, pin_b))
+        design.connect("V-", (ref, ctrl))
 
-        _capacitor(design, f"C80{position * 2 + 1}", "100n", "V+", "AGND",
-                   f"{ref} decoupling")
-        _capacitor(design, f"C80{position * 2 + 2}", "100n", "V-", "AGND",
-                   f"{ref} decoupling")
+    design.add(Part("J8", "PIZZ/ARCO", "Connector_Generic:Conn_01x02", CONN_FP[2],
+                    description="External SPST toggle; closed = pizz"))
+    design.connect("SW_TOG", ("J8", 1))
+    design.connect("SW_CTL", ("J8", 2))
 
-    design.add(Part("J8", "PIZZ/ARCO", "Connector_Generic:Conn_01x02",
-                    "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
-                    description="External SPST toggle; closed = inverted"))
-    design.connect("SW_CTL", ("J8", 1))
-    design.connect("V+", ("J8", 2))
-    # Hold the control line at V- when the toggle is open, and slow the
-    # transition so the change of polarity is not a step.
-    _resistor(design, "R701", "100k", "SW_CTL", "V-", "Control pull-down")
-    _capacitor(design, "C703", "100n", "SW_CTL", "V-", "Control slew limit")
-
-
-def power(design):
-    """Split the floating supply into +/- half of it about the audio ground.
-
-    RMC's schematic is drawn around a bipolar ground but specifies a single
-    floating supply, so signal ground has to sit at half of it.
-    Because the supply floats, this costs nothing and no coupling capacitors
-    are needed anywhere in the signal path.
-    """
-    design.add(Part("J9", SUPPLY_RANGE, "Connector_Generic:Conn_01x02",
-                    "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
-                    description=f"Floating {SUPPLY_RANGE} in: 1=+, 2=-"))
-    design.connect("VIN", ("J9", 1))
-    design.connect("V-", ("J9", 2))
-
-    design.add(Part("F701", "100mA", "Device:Polyfuse", "Fuse:Fuse_1206_3216Metric",
-                    mpn="MF-MSMF010", description="Resettable fuse"))
-    design.connect("VIN", ("F701", 1))
-    design.connect("VFUSED", ("F701", 2))
-
-    design.add(Part("D701", "B5819W", "Device:D_Schottky", "Diode_SMD:D_SOD-123",
-                    description="Reverse-polarity protection"))
-    design.connect("V+", ("D701", 1))       # pin 1 is the cathode
-    design.connect("VFUSED", ("D701", 2))
-
-    design.add(Part("D702", "SMAJ15A", "Device:D_TVS", "Diode_SMD:D_SMA",
-                    description="Rail clamp; CD4066B is 18 V absolute max"))
-    design.connect("V+", ("D702", 1))
-    design.connect("V-", ("D702", 2))
-
-    design.add(Part("C701", "100u/25V", "Device:C_Polarized",
-                    "Capacitor_SMD:CP_Elec_6.3x5.4", description="Bulk"))
-    design.connect("V+", ("C701", 1))
-    design.connect("V-", ("C701", 2))
-    _capacitor(design, "C702", "10u", "V+", "V-", "Bulk ceramic")
-    _capacitor(design, "C704", "100n", "V+", "V-", "Supply bypass")
-
-    # Mid-rail reference, buffered.
-    # 100k rather than 10k: the divider is a continuous drain, and 450 uA of a
-    # 2.5 mA budget is worth reclaiming when the source is an onboard battery.
-    # The buffer's 20 pA bias current makes 50k of source impedance cost about
-    # a microvolt, and C705 still filters the reference -- its corner simply
-    # moves from 3 Hz to 0.3 Hz. The cost is a ~2 s settle at power-on.
-    _resistor(design, "R702", "100k", "V+", "MIDREF", "Mid-rail divider")
-    _resistor(design, "R703", "100k", "MIDREF", "V-", "Mid-rail divider")
-    _capacitor(design, "C705", "10u", "MIDREF", "V-", "Reference filter")
-
-    design.add(Part("U7", "OPA2191", "rmc:OPA2191", OPAMP_FP, units=3,
-                    datasheet=OPAMP_DATASHEET, mpn="OPA2191IDR",
-                    description="Mid-rail buffer (A); spare (B)"))
-    design.connect("AGND_DRV", ("U7", 1))
-    design.connect("AGND", ("U7", 2))       # feedback taken beyond R704
-    design.connect("MIDREF", ("U7", 3))
-    design.connect("AGND", ("U7", 5))       # spare half, unity buffer
-    design.connect("SPARE", ("U7", 6))
-    design.connect("SPARE", ("U7", 7))
-    design.connect("V-", ("U7", 4))
-    design.connect("V+", ("U7", 8))
-
-    # Isolation resistor keeps the bypass capacitance off the op-amp's output
-    # while leaving it inside the feedback loop.
-    _resistor(design, "R704", "10R", "AGND_DRV", "AGND", "Output isolation")
-    _capacitor(design, "C706", "10u", "AGND", "V+", "Ground bypass")
-    _capacitor(design, "C707", "10u", "AGND", "V-", "Ground bypass")
-    _capacitor(design, "C708", "100n", "V+", "AGND", "U7 decoupling")
-    _capacitor(design, "C709", "100n", "V-", "AGND", "U7 decoupling")
+    # RMC's control network. R702 sits on the *rail* side of the toggle, so a
+    # short anywhere in the toggle cable is limited to about 450 uA rather
+    # than shorting V+ -- the cable leaves the board and can be pinched.
+    # Closed, the divider holds SW_CTL within 0.2V of V+ and draws 8.8 uA
+    # from V+ straight through to V-, so the drain stays symmetrical.
+    _resistor(design, "R702", "20k", "V+", "SW_TOG", "Control series limit")
+    _resistor(design, "R701", "1M", "SW_CTL", "V-", "Control pull-down")
+    _capacitor(design, "C701", "10n", "SW_CTL", "AGND", "Switch de-bounce")
 
 
 def output(design):
-    """Six channels out to RMC's DIN-8 instrument socket."""
-    design.add(Part("J7", "DIN-8", "Connector_Generic:Conn_01x08",
-                    "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical",
-                    description="To RMC DIN-8S socket / Poly-Drive II"))
+    """Six channels and both rails out to RMC's DIN-8 instrument socket.
+
+    Nine ways, not eight: DIN pins 7 and 8 now carry power, so ground has no
+    numbered pin of its own -- it is the shell. Pins 1..8 of this header map
+    one-to-one onto the DIN pins and pin 9 is the shell, which is what makes
+    the loom checkable by counting.
+    """
+    design.add(Part("J7", "DIN-8", "Connector_Generic:Conn_01x09", CONN_FP[9],
+                    description="To RMC DIN-8S socket: 1-6=strings, "
+                                "7=+4.5V, 8=-4.5V, 9=shell/ground"))
     for index in range(1, CHANNELS + 1):
         design.connect(f"OUT{index}", ("J7", index))
-    design.connect("AGND", ("J7", 7))
-    design.connect("DIN8", ("J7", 8))
+    design.connect("V+", ("J7", 7))
+    design.connect("V-", ("J7", 8))
+    design.connect("AGND", ("J7", 9))
 
-    # Pin 8's function is RMC's to confirm; the jumper lets it be grounded
-    # without cutting a track. Left unfitted.
-    design.add(Part("JP1", "DNP", "Jumper:SolderJumper_2_Open",
-                    "Jumper:SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm", dnp=True,
-                    description="Optional: DIN pin 8 to ground"))
-    design.connect("DIN8", ("JP1", 1))
-    design.connect("AGND", ("JP1", 2))
+
+def bypass(design):
+    """RMC: "a pair of 4.7uF/25V caps at each end of the power rails".
+
+    Four capacitors, replacing the eighteen local ones the old board carried.
+    Taken on RMC's authority as the circuit's designer; the In1/In2 plane pair
+    supplies the local V+ to AGND decoupling the deleted caps used to.
+    """
+    for position, (plus, minus) in enumerate((("C901", "C902"), ("C903", "C904"))):
+        end = "DIN end" if position == 0 else "far end"
+        _capacitor(design, plus, "4u7/25V", "V+", "AGND", f"Rail bypass, {end}")
+        _capacitor(design, minus, "4u7/25V", "V-", "AGND", f"Rail bypass, {end}")
 
 
 def flags(design):
@@ -340,11 +374,13 @@ def flags(design):
 
 def build():
     design = Design()
-    for index in range(1, CHANNELS + 1):
-        channel(design, index)
+    for index in range(1, CHANNELS // 2 + 1):
+        ref = quad(design, index)
+        channel(design, index * 2 - 1, ref, "odd")
+        channel(design, index * 2, ref, "even")
     switch_bank(design)
-    power(design)
     output(design)
+    bypass(design)
     flags(design)
     design.check()
     return design

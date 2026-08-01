@@ -2,9 +2,14 @@
 	(version 20251024)
 	(generator "violet-bridge")
 	(generator_version "10.0")
-	(symbol "OPA2191"
+	(symbol "OPA4191"
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
 		(property "Reference" "U"
-			(at 2.54 6.35 0)
+			(at 0 3.81 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -14,8 +19,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "OPA2191"
-			(at 2.54 3.81 0)
+		(property "Value" "OPA4191"
+			(at 0 -3.81 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
@@ -25,8 +30,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
-			(at 2.54 0 0)
+		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
+			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -36,8 +41,8 @@
 				)
 			)
 		)
-		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/opa2191.pdf"
-			(at 6.35 3.81 0)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/opa4191.pdf"
+			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(hide yes)
@@ -47,7 +52,7 @@
 				)
 			)
 		)
-		(property "Description" "Dual 36V precision rail-to-rail op amp, 140 uA/ch, 20 pA bias current, SOIC-8"
+		(property "Description" "Quad 36V precision rail-to-rail op amp, 140 uA/ch, 20 pA bias current, SOIC-14"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -68,7 +73,7 @@
 				)
 			)
 		)
-		(property "ki_keywords" "dual opamp rtor"
+		(property "ki_keywords" "quad opamp rtor"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -79,7 +84,7 @@
 				)
 			)
 		)
-		(property "ki_fp_filters" "SOIC*3.9x4.9mm*P1.27mm*"
+		(property "ki_fp_filters" "SOIC*3.9x8.7mm*P1.27mm*"
 			(at 0 0 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -90,21 +95,13 @@
 				)
 			)
 		)
-		(pin_names
-			(offset 0.127)
-		)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(duplicate_pin_numbers_are_jumpers no)
-		(symbol "OPA2191_1_1"
+		(symbol "OPA4191_1_1"
 			(polyline
 				(pts
-					(xy 5.08 0)
 					(xy -5.08 5.08)
-					(xy -5.08 -5.08)
 					(xy 5.08 0)
+					(xy -5.08 -5.08)
+					(xy -5.08 5.08)
 				)
 				(stroke
 					(width 0.254)
@@ -169,13 +166,13 @@
 				)
 			)
 		)
-		(symbol "OPA2191_2_1"
+		(symbol "OPA4191_2_1"
 			(polyline
 				(pts
-					(xy 5.08 0)
 					(xy -5.08 5.08)
-					(xy -5.08 -5.08)
 					(xy 5.08 0)
+					(xy -5.08 -5.08)
+					(xy -5.08 5.08)
 				)
 				(stroke
 					(width 0.254)
@@ -240,11 +237,153 @@
 				)
 			)
 		)
-		(symbol "OPA2191_3_1"
+		(symbol "OPA4191_3_1"
+			(polyline
+				(pts
+					(xy -5.08 5.08)
+					(xy 5.08 0)
+					(xy -5.08 -5.08)
+					(xy -5.08 5.08)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+			(pin output line
+				(at 7.62 0 180)
+				(length 2.54)
+				(name ""
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -2.54 0)
+				(length 2.54)
+				(name "-"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "9"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 2.54 0)
+				(length 2.54)
+				(name "+"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "10"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(symbol "OPA4191_4_1"
+			(polyline
+				(pts
+					(xy -5.08 5.08)
+					(xy 5.08 0)
+					(xy -5.08 -5.08)
+					(xy -5.08 5.08)
+				)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+			(pin input line
+				(at -7.62 2.54 0)
+				(length 2.54)
+				(name "+"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "12"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -7.62 -2.54 0)
+				(length 2.54)
+				(name "-"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "13"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin output line
+				(at 7.62 0 180)
+				(length 2.54)
+				(name ""
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "14"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+		(symbol "OPA4191_5_1"
 			(pin power_in line
-				(at 0 -7.62 90)
+				(at -2.54 7.62 270)
 				(length 3.81)
-				(name "V-"
+				(name "V+"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -260,16 +399,16 @@
 				)
 			)
 			(pin power_in line
-				(at 0 7.62 270)
+				(at -2.54 -7.62 90)
 				(length 3.81)
-				(name "V+"
+				(name "V-"
 					(effects
 						(font
 							(size 1.27 1.27)
 						)
 					)
 				)
-				(number "8"
+				(number "11"
 					(effects
 						(font
 							(size 1.27 1.27)

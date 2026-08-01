@@ -6,15 +6,18 @@ board quiet -- every supply and ground connection becomes a via rather than
 a track, and the high-impedance piezo traces run directly over an unbroken
 ground plane. V- is a pour on B.Cu.
 
-One channel is placed and routed once in tile-local coordinates and repeated
-six times, so the six channels are physically identical.
+The board is three blocks, each one OPA4191 serving two channels. The quad's
+pinout does most of the work: every pin of buffers A and B is on the left of
+the package and every pin of all-passes C and D is on the right, so a
+channel's buffer feedback stays entirely left, its all-pass feedback entirely
+right, and the only net that has to cross the package is BUFOUT -- which is a
+low-impedance node and can go anywhere.
 
 Track waypoints are given relative to real pad positions read back from the
 placed footprints, so nothing here depends on guessing KiCad's rotation
 conventions.
 """
 
-import os
 import pathlib
 import sys
 
@@ -35,78 +38,60 @@ VIA_DIAMETER = 0.6
 VIA_DRILL = 0.3
 CLEARANCE = 0.2
 
-TILE_PITCH = 14.0
-TILE_ORIGIN = (4.0, 4.0)     # top-left of channel 1's tile, in board coords
-CORRIDOR_X = 48.0            # OUT and SWN run up this lane to the right column
-RIGHT_X = 62.0               # switch ICs, DIN header and power live here
+BLOCK_PITCH = 23.0           # between quads
+BLOCK_ORIGIN = (3.0, 14.0)   # centreline of block 1, in board coords
+ROW_OFFSET = 4.6             # channel rows, above and below the quad centre
+CORRIDOR_X = 51.0            # OUT and SWN run up this lane to the right column
+RIGHT_X = 62.0               # switch ICs, DIN header and control live here
 BOARD_MARGIN = 3.0
 
-# Tile-local placement: ref suffix -> (x, y, rotation).
-# Rotation 90 stands a two-pad part on end with pad 1 lowermost; 270 puts
-# pad 1 uppermost. Positions are chosen so the op-amp's own pin order does
-# the routing work: the buffer lives on its left, the all-pass on its right.
-TILE_PLACEMENT = {
-    "J":   (2.5, 2.0, 0),        # 1=shield (top), 2=white, 3=red (bottom)
-    "R02": (6.5, 8.547, 270),    # 3M3 bias, pin 1 sits on the white lane
-    "R01": (11.0, 7.635, 0),     # 1k stopper, in line with the white lane
-    "C01": (14.0, 8.585, 270),   # 100p RF filter, pin 1 on the buffer input
-    "R03": (18.3, 5.73, 90),     # 1k buffer feedback, beside pins 1 and 2
-    "U":   (23.0, 7.0, 0),       # OPA2191
-    "C06": (26.5, 3.2, 0),       # V+ decoupling, level with pin 8
-    "C07": (17.5, 10.3, 180),    # V- decoupling, level with pin 4
-    "R06": (32.0, 3.2, 0),       # all-pass feedback pair, top row
-    "C02": (37.0, 3.2, 0),
-    "C04": (42.0, 3.2, 0),       # summing capacitors into the red element
-    "C05": (42.0, 6.0, 0),
-    "R04": (32.0, 12.5, 0),      # the two 47k from the buffer, bottom row
-    "R05": (37.0, 12.5, 0),
-    "C03": (42.0, 12.5, 0),      # all-pass lag capacitor
+# Channel placement, relative to the row: ref suffix -> (x, rank, kind).
+#
+# `rank` 0 sits on the row line itself, 1 on a sub-row further from the quad.
+# `kind` decides orientation: "series" parts lie along the row, "shunt" parts
+# stand on end so their grounded pad hangs clear of the signal lane -- a
+# horizontal shunt would put its ground pad in the middle of the lane its own
+# signal pad is feeding.
+#
+# The split into two sub-rows is what keeps the block narrow: R04/R06/C04 form
+# the series chain BUFOUT -> APN -> APOUT -> OUT, while R05/C02/C03 hang off it.
+ROW_PLACEMENT = {
+    "J":   (5.0, 0, "conn"),      # 1=shield, 2=white (on the lane), 3=red
+    "R02": (5.0, 1, "shunt"),     # 3M3 bias to ground
+    "C01": (10.5, 1, "shunt"),    # 100p RF filter
+    "R01": (15.0, 0, "series"),   # 1k stopper
+    "R03": (16.0, 1, "series"),   # 1k buffer feedback, left of the package
+    "R04": (33.0, 0, "series"),   # 47k into the all-pass inverting input
+    "R05": (33.0, 1, "series"),   # 47k lag into the switched node
+    "R06": (38.5, 0, "series"),   # 47k all-pass feedback
+    "C02": (38.5, 1, "series"),   # 100p across it
+    "C04": (44.0, 0, "series"),   # 1n8 summing into the red element
+    "C03": (44.0, 1, "shunt"),    # 100p lag to ground
 }
 
-# Tile-local lanes used by the routing below.
-Y_OUT_LANE = 0.7
-Y_BUFOUT_LANE = 1.9
-Y_APN_JUMPER = 2.4       # on B.Cu, under the top row
-Y_APOUT_LANE = 4.3
-Y_SWN_LANE = 9.8
-Y_BUFOUT_JUMPER = 14.0   # on B.Cu, below the bottom row
-X_BUFOUT_DROP = 24.0     # B.Cu drop from the top lane, under the package
-TILE_EXIT_X = 50.0
+SUB_ROW = 5.5        # between rank 0 and rank 1, measured away from the quad
+
+# Quad position relative to the block centreline.
+QUAD_X = 25.5
 
 # Board-level placement: ref -> (x, y, rotation).
 BOARD_PLACEMENT = {
-    "J7":  (RIGHT_X + 2.0, 2.0, 0),        # DIN-8 out, pins 1..8 downwards
-    # One switch package per pair of channels, sat beside the pair it serves,
-    # so each switched-node run stays short.
-    "U8":  (70.0, 26.0, 0),
-    "U9":  (70.0, 52.0, 0),
-    "U10": (70.0, 84.0, 0),
-    "C801": (82.0, 22.0, 0),
-    "C802": (82.0, 30.0, 0),
-    "C803": (82.0, 48.0, 0),
-    "C804": (82.0, 56.0, 0),
-    "C805": (82.0, 80.0, 0),
-    "C806": (82.0, 88.0, 0),
-    "J8":  (80.0, 64.0, 0),                # pizz/arco toggle
-    "R701": (74.0, 68.0, 0),
-    "C703": (74.0, 72.0, 0),
-    "J9":  (4.0, 100.5, 0),                 # supply in, bottom left
-    "F701": (10.0, 100.5, 0),
-    "D701": (16.0, 100.5, 180),             # pin 1 (cathode) faces the rail
-    "D702": (22.0, 100.5, 0),
-    "C701": (31.0, 100.5, 0),               # bulk electrolytic
-    "C702": (38.0, 100.5, 0),
-    "C704": (42.5, 100.5, 0),
-    "R702": (47.0, 97.0, 0),               # mid-rail divider
-    "R703": (47.0, 103.0, 180),             # pin 1 faces the reference node
-    "C705": (52.0, 105.0, 0),
-    "U7":  (58.0, 100.5, 0),                # mid-rail buffer
-    "R704": (52.0, 98.595, 180),           # isolation, pin 1 toward U7 pin 1
-    "C706": (66.0, 98.0, 0),               # rail bypass: every pad is a via
-    "C707": (66.0, 103.0, 0),
-    "C708": (72.0, 98.0, 0),
-    "C709": (72.0, 103.0, 0),
-    "JP1": (69.0, 19.78, 0),               # beside DIN pin 8
+    # Switch packages, each beside the three channels it serves.
+    "U4":  (RIGHT_X, 19.0, 0),
+    "U5":  (RIGHT_X, 51.0, 0),
+    # Control network, between the two packages where the spine passes.
+    "R702": (RIGHT_X - 2.0, 33.0, 0),
+    "R701": (RIGHT_X - 2.0, 37.0, 0),
+    "C701": (RIGHT_X - 2.0, 41.0, 0),
+    # Rail bypass, a pair at each end of the rails.
+    "C901": (RIGHT_X + 7.5, 8.0, 0),
+    "C902": (RIGHT_X + 7.5, 12.0, 0),
+    "C903": (RIGHT_X + 7.5, 62.0, 0),
+    "C904": (RIGHT_X + 7.5, 66.0, 0),
+    # Tail connectors laid flat along the bottom edge: standing up, the 1x09
+    # is 23.95mm tall and needs a column of its own.
+    "J7":  (26.0, 76.0, 90),
+    "J8":  (50.0, 76.0, 90),
 }
 
 
@@ -116,8 +101,6 @@ def to_mm(value):
 
 def point(x, y):
     return pcbnew.VECTOR2I_MM(float(x), float(y))
-
-
 class Board:
     def __init__(self):
         self.board = pcbnew.BOARD()
@@ -259,22 +242,55 @@ class Board:
         self.board.Add(item)
 
 
-def tile_origin(index):
-    return (TILE_ORIGIN[0], TILE_ORIGIN[1] + (index - 1) * TILE_PITCH)
+
+def block_centre(index):
+    """Y of block `index`'s centreline -- the quad sits on it."""
+    return BLOCK_ORIGIN[1] + (index - 1) * BLOCK_PITCH
 
 
-def tile_ref(suffix, index):
-    """Tile-local part name -> the design's reference (R02 -> R102)."""
-    if suffix in ("U", "J"):
-        return f"{suffix}{index}"
-    return f"{suffix[0]}{index}{suffix[1:]}"
+def row_y(channel):
+    """Y of a channel's passive row.
+
+    Odd channels take the row above their quad and even channels the row
+    below, matching the package: buffer A and all-pass D occupy the top half
+    of the pinout, buffer B and all-pass C the bottom half.
+    """
+    centre = block_centre((channel + 1) // 2)
+    return centre - ROW_OFFSET if channel % 2 else centre + ROW_OFFSET
 
 
-def place_channels(board):
-    for index in range(1, circuit.CHANNELS + 1):
-        ox, oy = tile_origin(index)
-        for suffix, (x, y, rotation) in TILE_PLACEMENT.items():
-            board.place(tile_ref(suffix, index), ox + x, oy + y, rotation)
+def row_ref(suffix, channel):
+    """Row-local part name -> the design's reference (R02 -> R102)."""
+    if suffix == "J":
+        return f"J{channel}"
+    return f"{suffix[0]}{channel}{suffix[1:]}"
+
+
+def place_blocks(board):
+    """Place three quads and their six channel rows.
+
+    `s` is the direction away from the quad for this channel: negative for the
+    odd channel, which takes the row above, positive for the even one below.
+    Everything about a row is mirrored through it, so both channels are laid
+    out by the same code and cannot drift apart.
+    """
+    for index in range(1, circuit.CHANNELS // 2 + 1):
+        centre = block_centre(index)
+        board.place(f"U{index}", BLOCK_ORIGIN[0] + QUAD_X, centre, 0)
+        for channel in (index * 2 - 1, index * 2):
+            s = -1 if channel % 2 else 1
+            row = row_y(channel)
+            for suffix, (dx, rank, kind) in ROW_PLACEMENT.items():
+                x = BLOCK_ORIGIN[0] + dx
+                y = row + s * rank * SUB_ROW
+                if kind == "conn":
+                    # Laid flat: standing up, the 1x03 header is 8.71mm tall
+                    # and becomes the tallest thing in the block, forcing the
+                    # block pitch wider than the passives need.
+                    rotation = 90
+                else:
+                    rotation = 0
+                board.place(row_ref(suffix, channel), x, y, rotation)
 
 
 def place_rest(board):
@@ -282,323 +298,271 @@ def place_rest(board):
         board.place(ref, x, y, rotation)
 
 
-def route_channel(board, index):
-    """Route one tile.
+def free_offset(board, ref, number, candidates, clearance=0.55):
+    """Pick the first stub direction that clears every other pad.
 
-    Almost everything lives on F.Cu. Three links have to cross the fan-out
-    from the op-amp's right-hand pins, so they hop to B.Cu and back: the
-    buffer output on its way down to the bottom row, and the inverting-input
-    net on its way up to the feedback pair. AGND, V+ and V- never travel --
-    they drop straight onto their planes through a via beside the pad.
+    Hand-tuning fifty-odd via offsets is where the previous board burned its
+    iterations. This tries a few directions and takes the first that is far
+    enough from foreign copper, so adding a part cannot silently push a via
+    into its neighbour.
     """
-    ox, oy = tile_origin(index)
-    n = index
-
-    def at(x, y):
-        return (round(ox + x, 4), round(oy + y, 4))
-
-    def pad(suffix, number):
-        return board.pad(tile_ref(suffix, n), number)
-
-    def ground(suffix, number, offset):
-        board.stub_via(tile_ref(suffix, n), number, offset)
-
-    # -- the red element straight through to the output -------------------
-    board.track(f"OUT{n}", [pad("J", 3), at(1.0, 7.08), at(1.0, Y_OUT_LANE),
-                            at(TILE_EXIT_X, Y_OUT_LANE)])
-    board.track(f"OUT{n}", [at(42.95, Y_OUT_LANE), pad("C04", 2), pad("C05", 2)])
-
-    # -- white element input network --------------------------------------
-    board.track(f"IN_W{n}", [pad("J", 2), at(4.2, 4.54), at(4.2, 7.635),
-                             pad("R02", 1), pad("R01", 1)])
-    board.track(f"BUFIN{n}", [pad("R01", 2), pad("C01", 1), pad("U", 3)])
-
-    # -- buffer ------------------------------------------------------------
-    board.track(f"BUFFB{n}", [pad("U", 2), at(19.3, 6.365), at(19.3, 6.642),
-                              pad("R03", 1)])
-    board.track(f"BUFOUT{n}", [pad("U", 1), at(19.0, 5.095), at(19.0, 4.818),
-                               pad("R03", 2)])
-    # Up and over the package, then down the back side to the bottom row.
-    board.track(f"BUFOUT{n}", [pad("U", 1), at(20.525, Y_BUFOUT_LANE),
-                               at(X_BUFOUT_DROP, Y_BUFOUT_LANE)])
-    board.via(f"BUFOUT{n}", *at(X_BUFOUT_DROP, Y_BUFOUT_LANE))
-    board.track(f"BUFOUT{n}",
-                [at(X_BUFOUT_DROP, Y_BUFOUT_LANE), at(X_BUFOUT_DROP, Y_BUFOUT_JUMPER),
-                 (pad("R04", 1)[0], at(0, Y_BUFOUT_JUMPER)[1]),
-                 (pad("R05", 1)[0], at(0, Y_BUFOUT_JUMPER)[1])],
-                layer=pcbnew.B_Cu)
-    for suffix in ("R04", "R05"):
-        x = pad(suffix, 1)[0]
-        board.via(f"BUFOUT{n}", x, at(0, Y_BUFOUT_JUMPER)[1])
-        board.track(f"BUFOUT{n}", [(x, at(0, Y_BUFOUT_JUMPER)[1]), pad(suffix, 1)])
-
-    # -- all-pass: inverting input up to the feedback pair, on B.Cu --------
-    board.track(f"APN{n}", [pad("U", 6), at(27.0, 7.635)])
-    board.via(f"APN{n}", *at(27.0, 7.635))
-    board.track(f"APN{n}",
-                [at(27.0, 7.635), at(27.0, Y_APN_JUMPER),
-                 (pad("R06", 1)[0], at(0, Y_APN_JUMPER)[1]),
-                 (pad("C02", 1)[0], at(0, Y_APN_JUMPER)[1])],
-                layer=pcbnew.B_Cu)
-    for suffix in ("R06", "C02"):
-        x = pad(suffix, 1)[0]
-        board.via(f"APN{n}", x, at(0, Y_APN_JUMPER)[1])
-        board.track(f"APN{n}", [(x, at(0, Y_APN_JUMPER)[1]), pad(suffix, 1)])
-    # R04's far end joins the same B.Cu run from below.
-    drop = (pad("R04", 2)[0], at(0, 10.8)[1])
-    board.track(f"APN{n}", [pad("R04", 2), drop])
-    board.via(f"APN{n}", *drop)
-    board.track(f"APN{n}", [drop, (drop[0], at(0, Y_APN_JUMPER)[1])], layer=pcbnew.B_Cu)
-
-    # -- all-pass output: one clear lane along the top row -----------------
-    board.track(f"APOUT{n}", [pad("U", 7), at(27.2, 6.365), at(27.2, Y_APOUT_LANE),
-                              (pad("R06", 2)[0], at(0, Y_APOUT_LANE)[1])])
-    board.track(f"APOUT{n}", [(pad("R06", 2)[0], at(0, Y_APOUT_LANE)[1]), pad("R06", 2)])
-    for suffix in ("C02", "C04"):
-        x = pad(suffix, 2 if suffix == "C02" else 1)[0]
-        board.track(f"APOUT{n}", [(pad("R06", 2)[0], at(0, Y_APOUT_LANE)[1]),
-                                  (x, at(0, Y_APOUT_LANE)[1])])
-        board.track(f"APOUT{n}", [(x, at(0, Y_APOUT_LANE)[1]),
-                                  pad(suffix, 2 if suffix == "C02" else 1)])
-    board.track(f"APOUT{n}", [(pad("C04", 1)[0], at(0, Y_APOUT_LANE)[1]), pad("C05", 1)])
-
-    # -- switched node, out to the switch bank -----------------------------
-    board.track(f"SWN{n}", [pad("U", 5), at(27.8, 8.905), at(27.8, Y_SWN_LANE),
-                            at(TILE_EXIT_X, Y_SWN_LANE)])
-    for suffix in ("R05", "C03"):
-        x = pad(suffix, 2 if suffix == "R05" else 1)[0]
-        board.track(f"SWN{n}", [(x, at(0, Y_SWN_LANE)[1]),
-                                pad(suffix, 2 if suffix == "R05" else 1)])
-
-    # -- supplies and ground ----------------------------------------------
-    board.track("V+", [pad("U", 8), at(25.475, 3.2), pad("C06", 1)], width=POWER_TRACK)
-    board.via("V+", *at(25.0, 3.2))
-    board.track("V-", [pad("U", 4), at(20.525, 10.3), pad("C07", 1)], width=POWER_TRACK)
-    board.via("V-", *at(20.0, 10.3))
-
-    for suffix, number, offset in (("J", 1, (2.2, 0.0)),
-                                   ("R02", 2, (0.0, 1.2)),
-                                   ("C01", 2, (0.0, 1.2)),
-                                   ("C06", 2, (1.3, 0.0)),
-                                   ("C07", 2, (-1.3, 0.0)),
-                                   ("C03", 2, (1.3, 0.0))):
-        ground(suffix, number, offset)
+    origin = board.pad(ref, number)
+    others = [board.pad(r, p.GetNumber())
+              for r, fp in board.footprints.items()
+              for p in fp.Pads()
+              if not (r == ref and p.GetNumber() == str(number))]
+    for dx, dy in candidates:
+        target = (origin[0] + dx, origin[1] + dy)
+        if all(abs(target[0] - ox) > clearance or abs(target[1] - oy) > clearance
+               for ox, oy in others):
+            return (dx, dy)
+    raise SystemExit(f"no clear stub direction for {ref}.{number}")
 
 
-def route_outputs(board):
-    """Six OUT nets up the corridor to the DIN header.
+PLANE_NETS = {"AGND": pcbnew.In1_Cu, "V+": pcbnew.In2_Cu}
 
-    Each gets its own vertical lane, ordered so that a lane's horizontal
-    runs always fall clear of the lanes belonging to lower-numbered
-    channels -- which is why none of the six cross.
+
+def route_planes(board):
+    """Drop every AGND and V+ pad onto its plane through a via beside the pad.
+
+    V- is deliberately NOT a plane: at about 2 mA it never needed one, and a
+    B.Cu pour is the project's worst failure mode -- fragmentation shows up as
+    unconnected items far from the cause. V- is left for the router.
     """
-    for index in range(1, circuit.CHANNELS + 1):
-        _, oy = tile_origin(index)
-        lane = 54.4 + (index - 1) * 0.8
-        exit_y = round(oy + Y_OUT_LANE, 4)
-        target = board.pad("J7", index)
-        board.track(f"OUT{index}",
-                    [(TILE_ORIGIN[0] + TILE_EXIT_X, exit_y), (lane, exit_y),
-                     (lane, target[1])])
-        # The last hop crosses the switched-node lanes, so it goes underneath.
-        # J7 is through-hole, so the back layer reaches its pad directly.
-        board.via(f"OUT{index}", lane, target[1])
-        board.track(f"OUT{index}", [(lane, target[1]), target], layer=pcbnew.B_Cu)
-
-
-def route_switched_nodes(board):
-    """Six SWN nets from the tiles to the analog switches.
-
-    Two of the eight switch cells on a 4066 sit entirely on the far side of
-    the package, so those two hop to B.Cu and cross underneath it.
-    """
-    targets = {1: ("U8", 1), 2: ("U8", 3), 3: ("U9", 1),
-               4: ("U9", 3), 5: ("U10", 1), 6: ("U10", 3)}
-    for index in range(1, circuit.CHANNELS + 1):
-        _, oy = tile_origin(index)
-        lane = 59.4 + (index - 1) * 0.9
-        exit_y = round(oy + Y_SWN_LANE, 4)
-        ref, pin = targets[index]
-        target = board.pad(ref, pin)
-        net = f"SWN{index}"
-        approach = (lane, target[1])
-        # Both horizontals run on B.Cu and only the vertical lane on F.Cu, so
-        # a lane and a horizontal can never meet -- the fan needs no ordering.
-        exit_point = (TILE_ORIGIN[0] + TILE_EXIT_X, exit_y)
-        board.via(net, *exit_point)
-        board.track(net, [exit_point, (lane, exit_y)], layer=pcbnew.B_Cu)
-        board.via(net, lane, exit_y)
-        board.track(net, [(lane, exit_y), approach])
-        board.via(net, *approach)
-        landing = (target[0] - 2.6, target[1])
-        board.track(net, [approach, landing], layer=pcbnew.B_Cu)
-        board.via(net, *landing)
-        board.track(net, [landing, target])
-
-
-def route_switch_control(board):
-    """One control line to all six switch cells, run on B.Cu."""
-    spine_x = 86.5
-    packages = ("U8", "U9", "U10")
-    source = board.pad("J8", 1)
-    # The spine has to span every branch off it, including the ones that
-    # come over the top of the first package.
-    board.track("SW_CTL", [source, (spine_x, source[1])], layer=pcbnew.B_Cu)
-    board.track("SW_CTL", [(spine_x, 18.5), (spine_x, 84.0)], layer=pcbnew.B_Cu)
-    for ref, pin in [(ref, pin) for ref in packages for pin in (13, 5)]:
-        target = board.pad(ref, pin)
-        if pin == 13:
-            # Right-hand side: straight in from the spine.
-            landing = (target[0] + 2.4, target[1])
-            board.track("SW_CTL", [(spine_x, target[1]), landing], layer=pcbnew.B_Cu)
+    owner = circuit.DESIGN.pin_owner()
+    quads = {f"U{i}" for i in range(1, circuit.CHANNELS // 2 + 1)}
+    count = 0
+    for (ref, number), net in sorted(owner.items()):
+        if net not in PLANE_NETS:
+            continue
+        if ref.startswith("#"):
+            continue
+        if ref in quads:
+            # Inboard, under the package body: the space between the two pad
+            # columns is the only clear ground on a 1.27mm-pitch package.
+            centre = to_mm(board.footprints[ref].GetPosition().x)
+            pad = board.pad(ref, number)
+            offset = (centre - pad[0] + (-0.9 if net == "V+" else 0.9), 0.0)
         else:
-            # Left-hand side. Coming in level with the pin would run through
-            # this package's own vias, so drop down the outside instead: over
-            # the top of the package, then down a clear column at x = 66.
-            centre = to_mm(board.footprints[ref].GetPosition().y)
-            over = centre - 7.5
-            landing = (66.0, target[1])
-            board.track("SW_CTL", [(spine_x, over), (66.0, over), landing],
-                        layer=pcbnew.B_Cu)
-        board.via("SW_CTL", *landing)
-        board.track("SW_CTL", [landing, target])
-    for ref, pin in (("R701", 1), ("C703", 1)):
-        landing = board.stub_via(ref, pin, (-1.5, 0.0))
-        # Return above the last package, not across its ground vias.
-        board.track("SW_CTL", [landing, (landing[0], 76.0), (spine_x, 76.0)],
-                    layer=pcbnew.B_Cu)
+            offset = free_offset(board, ref, number,
+                                 [(0.0, 1.6), (0.0, -1.6), (1.9, 0.0), (-1.9, 0.0),
+                                  (1.5, 1.5), (-1.5, 1.5), (1.5, -1.5), (-1.5, -1.5)])
+        board.stub_via(ref, number, offset)
+        count += 1
+    return count
 
 
-def route_power(board):
-    """The input chain, then everything else drops onto a plane."""
-    board.track("VIN", [board.pad("J9", 1), board.pad("F701", 1)], width=POWER_TRACK)
-    board.track("VFUSED", [board.pad("F701", 2), board.pad("D701", 2)], width=POWER_TRACK)
-    board.track("V+", [board.pad("D701", 1), board.pad("D702", 1)], width=POWER_TRACK)
-    board.stub_via("J9", 2, (0.0, 3.0))
-    board.stub_via("D702", 1, (0.0, -2.2))
-    board.stub_via("D702", 2, (0.0, 2.2))
+def route_critical(board):
+    """Hand-route only what the autorouter must not be trusted with.
 
-    # Mid-rail divider, kept clear of the isolation resistor between them.
-    board.track("MIDREF", [board.pad("R702", 2), (48.2, 97.0), (48.2, 103.0),
-                           board.pad("R703", 1)])
-    board.track("MIDREF", [(48.2, 103.0), (48.2, 105.0), board.pad("C705", 1)])
-    board.track("MIDREF", [(48.2, 101.135), board.pad("U7", 3)])
-    board.track("AGND_DRV", [board.pad("U7", 1), board.pad("R704", 1)])
-    board.track("SPARE", [board.pad("U7", 6), board.pad("U7", 7)])
-
-    # Everything else meets its rail through the planes.
-    for ref, pin, offset in (("R702", 1, (0.0, -2.2)),
-                             ("R703", 2, (0.0, 2.2)),
-                             ("R704", 2, (-2.2, 0.0)),
-                             ("C705", 2, (0.0, 2.2)),
-                             ("U7", 8, (0.0, -2.2)),
-                             ("U7", 4, (0.0, 2.2)),
-                             ("U7", 5, (2.2, 0.0)),
-                             ("U7", 2, (-2.2, 0.0)),
-                             ("C701", 1, (0.0, -3.4)), ("C701", 2, (0.0, 3.4)),
-                             ("C702", 1, (0.0, -2.2)), ("C702", 2, (0.0, 2.2)),
-                             ("C704", 1, (0.0, -2.2)), ("C704", 2, (0.0, 2.2)),
-                             ("C706", 1, (0.0, -2.2)), ("C706", 2, (0.0, 2.2)),
-                             ("C707", 1, (0.0, -2.2)), ("C707", 2, (0.0, 2.2)),
-                             ("C708", 1, (0.0, -2.2)), ("C708", 2, (0.0, 2.2)),
-                             ("C709", 1, (0.0, -2.2)), ("C709", 2, (0.0, 2.2))):
-        board.stub_via(ref, pin, offset)
+    BUFIN is the 3M3 node -- the highest-impedance point in the design, where
+    surface leakage and stray coupling actually matter. It gets the short
+    direct path from the stopper to the buffer's + input, over unbroken In1
+    ground, before the router sees the board. Everything else is fair game.
+    """
+    for channel in range(1, circuit.CHANNELS + 1):
+        s = -1 if channel % 2 else 1
+        index = (channel + 1) // 2
+        quad = f"U{index}"
+        half = "odd" if channel % 2 else "even"
+        _, (_, _, buf_in) = circuit.QUAD_UNITS[half]["buf"]
+        target = board.pad(quad, buf_in)
+        stopper = board.pad(row_ref("R01", channel), 2)
+        filt = board.pad(row_ref("C01", channel), 1)
+        turn = round(target[0] - 2.0, 4)
+        net = f"BUFIN{channel}"
+        board.track(net, [stopper, (turn, stopper[1]), (turn, target[1]), target])
+        board.track(net, [filt, (filt[0], round(filt[1] - s * 2.7, 4)),
+                          (turn, round(filt[1] - s * 2.7, 4)), (turn, stopper[1])])
 
 
-def route_right_column(board):
-    """Switch-package supplies, decoupling and the DIN header."""
-    for ref, plus, minus in (("U8", 14, 7), ("U9", 14, 7), ("U10", 14, 7)):
-        board.stub_via(ref, plus, (0.0, -2.4))
-        board.stub_via(ref, minus, (0.0, 2.4))
-    # Spare switch cells and the switched-node returns all sit on ground.
-    grounded = [(ref, pin) for ref in ("U8", "U9", "U10")
-                for pin in (2, 4, 8, 9, 10, 11)]
-    for ref, pin in grounded:
-        pad = board.pad(ref, pin)
-        offset = (2.2, 0.0) if pad[0] > 70.0 else (-2.2, 0.0)
-        board.stub_via(ref, pin, offset)
-    for ref in ("U8", "U9", "U10"):
-        for pin in (6, 12):
-            board.stub_via(ref, pin, (-2.2, 0.0) if pin == 6 else (2.2, 0.0))
-    for ref in ("C801", "C802", "C803", "C804", "C805", "C806"):
-        board.stub_via(ref, 1, (-1.5, 0.0))
-        board.stub_via(ref, 2, (1.5, 0.0))
+def route_channel(board, channel):
+    """Route one channel. Six identical calls, so a fix here is a fix everywhere.
 
-    board.stub_via("J7", 7, (2.5, 0.0))
-    board.track("DIN8", [board.pad("J7", 8), board.pad("JP1", 1)])
-    board.stub_via("JP1", 2, (1.3, 0.0))
-    board.stub_via("J8", 2, (2.5, 0.0))
-    board.stub_via("R701", 2, (1.3, 0.0))
-    board.stub_via("C703", 2, (1.3, 0.0))
+    `s` points away from the quad: -1 for the odd channel on the row above,
+    +1 for the even one below. Every offset is multiplied by it, so both
+    halves of a block come out of the same code and cannot drift apart.
+
+    B.Cu carries the two nets that must traverse the whole block -- OUT and
+    the switched node -- while everything local stays on F.Cu. That split is
+    only affordable because V- is no longer a pour: with B.Cu free, a crossing
+    costs two vias instead of a hole in the negative rail.
+    """
+    s = -1 if channel % 2 else 1
+    index = (channel + 1) // 2
+    quad = f"U{index}"
+    half = "odd" if channel % 2 else "even"
+    _, (buf_out, buf_fb, _) = circuit.QUAD_UNITS[half]["buf"]
+    _, (ap_out, ap_n, ap_p) = circuit.QUAD_UNITS[half]["ap"]
+    n = channel
+
+    def p(suffix, number):
+        return board.pad(row_ref(suffix, n), number)
+
+    def q(number):
+        return board.pad(quad, number)
+
+    def lane(k):
+        """A track offset k mm from the row, away from the quad.
+
+        The clear band runs from the edge of the row pads to the edge of the
+        sub-row pads. Straying outside it puts a track straight through a pad
+        row, which DRC reports as dozens of shorts far from the real mistake --
+        exactly how SWN was routed along the sub-row itself for a while.
+        """
+        assert 1.175 < k < SUB_ROW - 1.175, (
+            f"lane({k}) is outside the clear band "
+            f"(1.175 .. {SUB_ROW - 1.175}) -- it would cross a pad row")
+        return round(row_y(n) + s * k, 4)
+
+    def hop(net, start, end, layer=pcbnew.B_Cu):
+        """Dive to `layer` at `start` and surface at `end`."""
+        board.via(net, *start)
+        board.track(net, [start, end], layer=layer)
+        board.via(net, *end)
+
+    # -- white element in: J.2 out to a lane, then back to the stopper -------
+    # J's three pads sit along the row, so nothing can leave the connector
+    # along it -- the shield and the red element are in the way.
+    white = f"IN_W{n}"
+    board.track(white, [p("J", 2), (p("J", 2)[0], lane(2.6)),
+                        (p("R01", 1)[0], lane(2.6)), p("R01", 1)])
+    board.track(white, [(p("J", 2)[0], lane(2.6)), (p("R02", 1)[0], lane(2.6)),
+                        p("R02", 1)])
+
+    # -- buffer feedback and output -----------------------------------------
+    board.track(f"BUFFB{n}", [q(buf_fb), (q(buf_fb)[0] - 3.5, q(buf_fb)[1]),
+                              (q(buf_fb)[0] - 3.5, lane(4.10)),
+                              (p("R03", 1)[0], lane(4.10)), p("R03", 1)])
+
+    out_pad = q(buf_out)
+    board.track(f"BUFOUT{n}", [out_pad, (out_pad[0] - 1.8, out_pad[1])])
+    hop(f"BUFOUT{n}", (out_pad[0] - 1.8, out_pad[1]),
+        (p("R04", 1)[0] - 2.4, out_pad[1]))
+    board.track(f"BUFOUT{n}", [(p("R04", 1)[0] - 2.4, out_pad[1]), p("R04", 1)])
+    board.track(f"BUFOUT{n}", [(p("R04", 1)[0] - 2.4, out_pad[1]),
+                               (p("R04", 1)[0] - 1.6, p("R05", 1)[1]), p("R05", 1)])
+    board.track(f"BUFOUT{n}", [(out_pad[0] - 1.8, out_pad[1]),
+                               (out_pad[0] - 1.8, p("R03", 2)[1]), p("R03", 2)])
+
+    # -- all-pass: inverting side, then the feedback pair --------------------
+    board.track(f"APN{n}", [q(ap_n), (q(ap_n)[0] + 2.2, q(ap_n)[1]),
+                            (q(ap_n)[0] + 2.2, lane(3.2)),
+                            (p("R06", 1)[0], lane(2.15)), p("R06", 1)])
+    board.track(f"APN{n}", [p("R04", 2), p("R06", 1)])
+    board.track(f"APN{n}", [(p("C02", 1)[0], lane(3.2)), p("C02", 1)])
+
+    board.track(f"APOUT{n}", [q(ap_out), (q(ap_out)[0] + 1.2, q(ap_out)[1]),
+                              (q(ap_out)[0] + 1.2, lane(2.15)),
+                              (p("C04", 1)[0], lane(3.2)), p("C04", 1)])
+    board.track(f"APOUT{n}", [p("R06", 2), p("C04", 1)])
+    board.track(f"APOUT{n}", [(p("C02", 2)[0], lane(2.15)), p("C02", 2)])
+
+    # -- switched node: local on F.Cu, then under the block on B.Cu ----------
+    swn = f"SWN{n}"
+    board.track(swn, [q(ap_p), (q(ap_p)[0] + 3.2, q(ap_p)[1]),
+                      (q(ap_p)[0] + 3.2, lane(4.0)),
+                      (p("R05", 2)[0], lane(4.0)), p("R05", 2)])
+    # C02 sits between R05 and C03 on the sub-row, so the switched node goes
+    # under it. Via offsets are sized off C02's pad edges, not guessed.
+    leave = (round(p("R05", 2)[0] + 1.0, 4), p("R05", 2)[1])
+    land = (round(p("C03", 1)[0] - 1.4, 4), p("C03", 1)[1])
+    board.track(swn, [p("R05", 2), leave])
+    hop(swn, leave, land)
+    board.track(swn, [land, p("C03", 1)])
+
+    # -- red element straight through to the summing node -------------------
+    # OUT is the high-impedance piezo node and has to cross the whole block,
+    # so it goes under it rather than fighting for a lane on the front.
+    out = f"OUT{n}"
+    board.track(out, [p("J", 3), (p("J", 3)[0], lane(1.5))])
+    hop(out, (p("J", 3)[0], lane(1.5)), (p("C04", 2)[0], lane(1.5)))
+    board.track(out, [(p("C04", 2)[0], lane(1.5)), p("C04", 2)])
 
 
 def add_copper(board, rectangle):
-    """AGND on In1, V+ on In2, V- poured on the back.
+    """AGND on In1, V+ on In2. B.Cu is a signal layer, not a V- pour.
 
-    The planes are what make this layout tractable: every supply and ground
-    pad reaches its rail through a single via, and the high-impedance piezo
-    traces on the front run over unbroken ground.
+    Two planes rather than three: every supply and ground pad reaches its rail
+    through a single via, and the high-impedance piezo traces on the front run
+    over unbroken ground. V- is routed like any other net.
     """
     board.zone("AGND", pcbnew.In1_Cu, rectangle)
     board.zone("V+", pcbnew.In2_Cu, rectangle)
-    board.zone("V-", pcbnew.B_Cu, rectangle)
-
-
-def report(board):
-    print("pad positions for channel 1:")
-    for suffix in TILE_PLACEMENT:
-        ref = {"U": "U1", "J": "J1"}.get(suffix, f"{suffix[0]}1{suffix[1:]}")
-        pads = []
-        for pad in board.footprints[ref].Pads():
-            x, y = board.pad(ref, pad.GetNumber())
-            pads.append(f"{pad.GetNumber()}:({x:.3f},{y:.3f})")
-        print(f"  {ref:6s} {' '.join(sorted(pads))}")
 
 
 def silkscreen(board, rectangle):
     left, top, right, bottom = rectangle
-    # PCB_TEXT is centred on its position, so titles sit at mid-span.
     middle = (left + right) / 2
-    board.text("RMC pizz/arco  6 channel  rev A", middle, top + 1.8, size=1.4)
-    # "FLOATING" is the part that breaks things if ignored, so it stays first;
-    # the range itself comes from design.py so it cannot drift from the sheet.
-    board.text(f"FLOATING SUPPLY ONLY   {circuit.SUPPLY_RANGE}",
-               middle, bottom - 1.8, size=1.2)
-    for index in range(1, circuit.CHANNELS + 1):
-        _, oy = tile_origin(index)
-        board.text(f"CH{index} G/W/R", TILE_ORIGIN[0] + 6.0, oy - 1.4, size=0.9)
+    board.text("RMC pizz/arco  6 channel  rev B", middle, top + 1.8, size=1.4)
+    # The polarity is the thing that destroys the board if the loom is built
+    # backwards, and there is deliberately no reverse-protection diode -- at
+    # 9V total a series Schottky would cost about 0.6dB of headroom we do not
+    # have. This silkscreen is the only defence.
+    board.text("J7  1-6=STRINGS  7=+4.5V  8=-4.5V  9=SHELL/GND",
+               middle, bottom - 3.4, size=1.2)
+    board.text(f"POWERED FROM POLY-DRIVE II  {circuit.SUPPLY_RANGE}  "
+               f"CHECK POLARITY BEFORE FIRST POWER-UP", middle, bottom - 1.4, size=1.0)
+    for channel in range(1, circuit.CHANNELS + 1):
+        board.text(f"CH{channel} G/W/R", BLOCK_ORIGIN[0] + 6.0,
+                   row_y(channel) - 2.6, size=0.9)
+    board.text("PIZZ=CLOSED", BOARD_PLACEMENT["J8"][0] - 6.0,
+               BOARD_PLACEMENT["J8"][1] - 3.2, size=0.9)
+
+
+def board_extent(board):
+    """Outline from the placed parts, so the board is never bigger than it is."""
+    xs, ys = [], []
+    for footprint in board.footprints.values():
+        box = footprint.GetCourtyard(pcbnew.F_CrtYd).BBox()
+        xs += [to_mm(box.GetLeft()), to_mm(box.GetRight())]
+        ys += [to_mm(box.GetTop()), to_mm(box.GetBottom())]
+    return (0.0, 0.0,
+            round(max(xs) + BOARD_MARGIN, 1), round(max(ys) + BOARD_MARGIN, 1))
+
+
+def export_dsn(board, path):
+    """Hand the placed, part-routed board to the autorouter.
+
+    Everything already laid down -- the plane stubs and the BUFIN runs -- is
+    exported as existing wiring, so freerouting works around it rather than
+    ripping it up.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not pcbnew.ExportSpecctraDSN(board.board, str(path)):
+        raise SystemExit(f"Specctra DSN export failed: {path}")
+    return path
 
 
 def main():
     board = Board()
-    place_channels(board)
+    place_blocks(board)
     place_rest(board)
 
-    for index in range(1, circuit.CHANNELS + 1):
-        route_channel(board, index)
-    route_outputs(board)
-    route_switched_nodes(board)
-    route_switch_control(board)
-    route_power(board)
-    route_right_column(board)
+    stubs = route_planes(board)
+    route_critical(board)
+    for channel in range(1, circuit.CHANNELS + 1):
+        route_channel(board, channel)
 
-    _, last_y = tile_origin(circuit.CHANNELS)
-    rectangle = (0.0, 0.0, 88.0, 112.0)
+    rectangle = board_extent(board)
     board.outline(rectangle)
     inner = (rectangle[0] + 0.3, rectangle[1] + 0.3,
              rectangle[2] - 0.3, rectangle[3] - 0.3)
     add_copper(board, inner)
     silkscreen(board, rectangle)
 
-    filler = pcbnew.ZONE_FILLER(board.board)
-    filler.Fill(board.board.Zones())
-
-    destination = pathlib.Path(__file__).parent / "rmc-pizz-arco" / "rmc-pizz-arco.kicad_pcb"
+    here = pathlib.Path(__file__).parent
+    destination = here / circuit.PROJECT / f"{circuit.PROJECT}.kicad_pcb"
+    pcbnew.ZONE_FILLER(board.board).Fill(board.board.Zones())
     pcbnew.SaveBoard(str(destination), board.board)
+    export_dsn(board, here / "build" / f"{circuit.PROJECT}.dsn")
+
     print(f"wrote {destination}")
-    print(f"  {len(board.footprints)} footprints, "
-          f"{len(list(board.board.GetTracks()))} track/via items, "
-          f"board {rectangle[2]:.0f} x {rectangle[3]:.0f} mm")
+    print(f"  {len(board.footprints)} footprints, {stubs} plane stubs, "
+          f"{len(list(board.board.GetTracks()))} track/via items")
+    print(f"  board {rectangle[2]:.1f} x {rectangle[3]:.1f} mm "
+          f"= {rectangle[2] * rectangle[3]:.0f} mm2")
+    print(f"  DSN written for the autorouter; import the SES to finish routing")
 
 
 if __name__ == "__main__":

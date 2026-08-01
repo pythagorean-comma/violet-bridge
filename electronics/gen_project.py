@@ -98,8 +98,6 @@ def project_file(path, root_uuid):
                 {"netclass": "Power", "pattern": "V+"},
                 {"netclass": "Power", "pattern": "V-"},
                 {"netclass": "Power", "pattern": "AGND"},
-                {"netclass": "Power", "pattern": "VIN"},
-                {"netclass": "Power", "pattern": "VFUSED"},
             ],
         },
         "pcbnew": {"last_paths": {}, "page_layout_descr_file": ""},
@@ -133,14 +131,24 @@ def library_tables(directory):
 
 
 def symbol_library(path):
-    """The project library: OPA2191, bodied on TI's OPA2197 dual."""
-    symbol = symlib.flatten("Amplifier_Operational", "OPA2197xD", rename="OPA2191")
-    symbol = circuit.patch_symbol("rmc:OPA2191", symbol)
+    """The project library: every part borrowed under the `rmc` nickname.
+
+    Driven off circuit.LIBS, the same way library_tables() is, so adding a
+    borrowed part to LIBS is sufficient and the two cannot drift. This used to
+    hard-code its single symbol, and nothing in the build would have caught
+    the omission: the schematic embeds its own copy of every symbol in
+    lib_symbols, so ERC and verify.py both pass and the fault only appears as
+    a broken library link when a human opens the project in KiCad.
+    """
     library = [Sym("kicad_symbol_lib"),
                [Sym("version"), 20251024],
                [Sym("generator"), "violet-bridge"],
-               [Sym("generator_version"), "10.0"],
-               symbol]
+               [Sym("generator_version"), "10.0"]]
+    for lib_id, (nick, libname, symname, rename) in sorted(circuit.LIBS.items()):
+        if nick != "rmc":
+            continue
+        symbol = symlib.flatten(libname, symname, rename=rename)
+        library.append(circuit.patch_symbol(lib_id, symbol))
     path.write_text(dumps(library) + "\n")
 
 
