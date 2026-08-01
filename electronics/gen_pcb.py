@@ -90,6 +90,7 @@ ROW_PLACEMENT = {
 }
 
 SUB_ROW = 5.5        # between rank 0 and rank 1, measured away from the quad
+REFERENCE_OFFSET = 2.2   # sub-row designators, measured back towards the row
 
 # Quad position relative to the block centreline.
 QUAD_X = 25.5
@@ -119,6 +120,10 @@ BOARD_PLACEMENT = {
     "J7":  (26.0, 76.5, 90),
     "J8":  (50.0, 76.5, 90),
 }
+
+# Where the tail headers' reference designators go, since lying flat puts the
+# default position on top of their own pads.
+TAIL_REFERENCE = {"J7": (22.6, 76.5), "J8": (56.2, 76.5)}
 
 
 def to_mm(value):
@@ -316,12 +321,28 @@ def place_blocks(board):
                     rotation = 90
                 else:
                     rotation = 0
-                board.place(row_ref(suffix, channel), x, y, rotation)
+                footprint = board.place(row_ref(suffix, channel), x, y, rotation)
+                if rank:
+                    # Reference designators on a sub-row go towards the row,
+                    # not away from it. KiCad's default is to sit them above
+                    # the part, which for an odd channel points straight at
+                    # the previous block's sub-row -- 2.8mm away -- and the
+                    # two blocks' designators land on top of each other. It
+                    # is not a DRC error and it makes the board unreadable,
+                    # which is worse: the reference designators are what a
+                    # reviewer and an assembler both work from.
+                    footprint.Reference().SetPosition(
+                        point(x, round(y - s * REFERENCE_OFFSET, 4)))
 
 
 def place_rest(board):
     for ref, (x, y, rotation) in BOARD_PLACEMENT.items():
-        board.place(ref, x, y, rotation)
+        footprint = board.place(ref, x, y, rotation)
+        if ref in TAIL_REFERENCE:
+            # The tail headers lie flat along the bottom edge, and a rotated
+            # footprint puts its reference designator across its own pads.
+            # Park them off the ends instead, where the board is empty.
+            footprint.Reference().SetPosition(point(*TAIL_REFERENCE[ref]))
 
 
 def free_offset(board, ref, number, candidates, clearance=0.55):
@@ -869,20 +890,40 @@ def add_copper(board, rectangle):
 
 
 def silkscreen(board, rectangle):
+    """Legends, sized so they fit on the board they are printed on.
+
+    The stroke font advances about one text height per character, so a line
+    of n characters at size s is roughly n*s wide. Both bottom lines are
+    checked against the board width rather than trusted -- the previous pair
+    ran off both edges, which a fab silently clips, taking the polarity
+    warning with it.
+    """
     left, top, right, bottom = rectangle
     middle = (left + right) / 2
-    board.text("RMC pizz/arco  6 channel  rev B", middle, top + 1.8, size=1.4)
+
+    def legend(body, y, size):
+        assert len(body) * size < (right - left) - 2 * BOARD_MARGIN, (
+            f"silkscreen line is wider than the board: {body!r}")
+        board.text(body, middle, y, size=size)
+
+    legend("RMC pizz/arco  6 channel  rev B", top + 1.8, 1.4)
+    # Below the tail connectors, not above them: above is the OUT fan-in, six
+    # approach rows deep, and the header pads themselves.
+    legend("J7  1-6=STRINGS  7=+4.5V  8=-4.5V  9=SHELL/GND", bottom - 2.9, 1.1)
     # The polarity is the thing that destroys the board if the loom is built
     # backwards, and there is deliberately no reverse-protection diode -- at
     # 9V total a series Schottky would cost about 0.6dB of headroom we do not
-    # have. This silkscreen is the only defence.
-    board.text("J7  1-6=STRINGS  7=+4.5V  8=-4.5V  9=SHELL/GND",
-               middle, bottom - 3.4, size=1.2)
-    board.text(f"POWERED FROM POLY-DRIVE II  {circuit.SUPPLY_RANGE}  "
-               f"CHECK POLARITY BEFORE FIRST POWER-UP", middle, bottom - 1.4, size=1.0)
+    # have. This silkscreen is the only defence, so it says why and not just
+    # what.
+    legend(f"{circuit.SUPPLY_RANGE}  CHECK POLARITY - NO REVERSE PROTECTION",
+           bottom - 1.1, 0.9)
+    # Channel labels sit on the quad side of their row, mirrored like
+    # everything else in a block. On the other side is the sub-row, and its
+    # designators are already there.
     for channel in range(1, circuit.CHANNELS + 1):
+        s = -1 if channel % 2 else 1
         board.text(f"CH{channel} G/W/R", BLOCK_ORIGIN[0] + 6.0,
-                   row_y(channel) - 2.6, size=0.9)
+                   round(row_y(channel) - s * 2.6, 4), size=0.9)
     board.text("PIZZ=CLOSED", BOARD_PLACEMENT["J8"][0] - 6.0,
                BOARD_PLACEMENT["J8"][1] - 3.2, size=0.9)
 
