@@ -24,5 +24,12 @@ The phase-switching preamp for the RMC pizz/arco pickups that sit in the
 saddles has its own repository:
 <https://github.com/pythagorean-comma/rmc-pizz-arco>. It was extracted from
 this one on 2026-08-01 — it shares no dependencies with the bridge geometry
-and needs KiCad rather than CadQuery. The history up to that point is still
-here, under `electronics/`.
+and needs KiCad rather than CadQuery.
+
+The board's history up to that point is in this repository, at the
+`electronics/` path. That includes the original 88 × 112 mm hand-buildable
+version, which the new repository does not carry:
+
+```bash
+git checkout a670b3e -- electronics/
+```
