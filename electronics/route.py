@@ -1,11 +1,15 @@
 """Run the autorouter over the placed board and bring the result back in.
 
-Runs under KiCad's bundled interpreter, like gen_pcb.py. The board arrives
-already carrying its plane stubs and the hand-routed BUFIN nets; freerouting
-treats those as existing wiring and routes around them rather than ripping
-them up. Everything stays reproducible from design.py -- no GUI at any point.
+NOT part of the build any more, and not needed: gen_pcb.py routes the board
+completely and DRC-clean on its own, so there is nothing left for a router to
+do. Kept because it is the working end of the freerouting route -- if a future
+change makes some region genuinely awkward, running this over the DSN that
+gen_pcb.py still writes is the escape hatch, and rediscovering how to drive
+freerouting headlessly is a session's work.
 
-FREEROUTING_JAR overrides where the jar is found.
+Runs under KiCad's bundled interpreter, like gen_pcb.py. Everything already
+laid down is exported as existing wiring, so freerouting works around it
+rather than ripping it up. FREEROUTING_JAR overrides where the jar is found.
 """
 
 import os

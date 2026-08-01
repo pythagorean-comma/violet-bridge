@@ -39,13 +39,6 @@ echo "== schematic and project =="
 echo "== board =="
 "$KICAD_PY" gen_pcb.py 2>&1 | grep -v "assert" || true
 
-echo "== autoroute =="
-# Placement, plane stubs and the critical nets come from gen_pcb.py;
-# freerouting fills in the rest and route.py imports the result. If the
-# jar is missing it says so and leaves the board unrouted rather than
-# failing the build.
-"$KICAD_PY" route.py 2>&1 | grep -v "assert" || true
-
 # After the board, not before: this checks the drawing against design.py and
 # the board's footprint linkage against the drawing, so both must be current.
 echo "== checking the drawing and the board against design.py =="
