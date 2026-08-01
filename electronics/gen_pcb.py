@@ -431,24 +431,32 @@ def route_channel(board, channel):
                         p("R02", 1)])
 
     # -- buffer feedback and output -----------------------------------------
-    board.track(f"BUFFB{n}", [q(buf_fb), (q(buf_fb)[0] - 3.5, q(buf_fb)[1]),
-                              (q(buf_fb)[0] - 3.5, lane(4.10)),
-                              (p("R03", 1)[0], lane(4.10)), p("R03", 1)])
+    # The buffer's three pins sit in one column, so anything leaving pin 1 or
+    # pin 2 leftward crosses whatever arrives at pin 3 from the left. BUFIN is
+    # the 3M3 node and must have the short direct approach, so it keeps the
+    # left side to itself and the other two dive inboard -- between the pad
+    # columns, the same clear ground the power stubs use.
+    fb_in = (round(q(buf_fb)[0] + 2.6, 4), q(buf_fb)[1])
+    fb_out = (p("R03", 1)[0], round(p("R03", 1)[1] - s * 1.8, 4))
+    board.track(f"BUFFB{n}", [q(buf_fb), fb_in])
+    hop(f"BUFFB{n}", fb_in, fb_out)
+    board.track(f"BUFFB{n}", [fb_out, p("R03", 1)])
 
     out_pad = q(buf_out)
-    board.track(f"BUFOUT{n}", [out_pad, (out_pad[0] - 1.8, out_pad[1])])
-    hop(f"BUFOUT{n}", (out_pad[0] - 1.8, out_pad[1]),
-        (p("R04", 1)[0] - 2.4, out_pad[1]))
-    board.track(f"BUFOUT{n}", [(p("R04", 1)[0] - 2.4, out_pad[1]), p("R04", 1)])
-    board.track(f"BUFOUT{n}", [(p("R04", 1)[0] - 2.4, out_pad[1]),
-                               (p("R04", 1)[0] - 1.6, p("R05", 1)[1]), p("R05", 1)])
-    board.track(f"BUFOUT{n}", [(out_pad[0] - 1.8, out_pad[1]),
-                               (out_pad[0] - 1.8, p("R03", 2)[1]), p("R03", 2)])
+    inboard = (round(out_pad[0] + 1.4, 4), out_pad[1])
+    surface = (round(p("R04", 1)[0] - 2.4, 4), out_pad[1])
+    board.track(f"BUFOUT{n}", [out_pad, inboard])
+    hop(f"BUFOUT{n}", inboard, surface)
+    board.track(f"BUFOUT{n}", [surface, p("R04", 1)])
+    board.track(f"BUFOUT{n}", [surface, (surface[0], p("R05", 1)[1]), p("R05", 1)])
+    out_fb = (p("R03", 2)[0], round(p("R03", 2)[1] - s * 1.8, 4))
+    hop(f"BUFOUT{n}", inboard, out_fb)
+    board.track(f"BUFOUT{n}", [out_fb, p("R03", 2)])
 
     # -- all-pass: inverting side, then the feedback pair --------------------
     board.track(f"APN{n}", [q(ap_n), (q(ap_n)[0] + 2.2, q(ap_n)[1]),
                             (q(ap_n)[0] + 2.2, lane(3.2)),
-                            (p("R06", 1)[0], lane(2.15)), p("R06", 1)])
+                            (p("R06", 1)[0], lane(3.2)), p("R06", 1)])
     board.track(f"APN{n}", [p("R04", 2), p("R06", 1)])
     board.track(f"APN{n}", [(p("C02", 1)[0], lane(3.2)), p("C02", 1)])
 
